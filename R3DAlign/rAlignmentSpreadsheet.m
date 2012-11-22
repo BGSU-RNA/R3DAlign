@@ -223,6 +223,11 @@ for i=1:length(FinalListing)
      FinalListing{i,6}=f;
 end
 
+if ismac == 1
+    fprintf('Excel output is disabled on Macs');
+    return;
+end
+
 date = regexprep(datestr(now),':', '-');
 ExcelName=['R3D Align ' File1.Filename ' ' File2.Filename ' ' date(1:17)];
 
