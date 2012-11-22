@@ -1,9 +1,6 @@
 function [AlignedNTs1,AlignedNTs2,AlignedIndices1,AlignedIndices2,Indices1,Indices2] = R3DAlign(File1,NTList1,File2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,seed1,seed2)
 
-if ~(exist('FR3DSource') == 7),        %#ok<*EXIST> % if directory doesn't yet exist
-  mkdir('FR3DSource');
-end
-path(path,[pwd filesep 'FR3DSource']);
+path(path,[pwd filesep 'FR3D' filesep 'FR3DSource']);
 
 if ~(exist('PDBFiles') == 7),        % if directory doesn't yet exist
   mkdir('PDBFiles');
@@ -24,7 +21,7 @@ if nargin < 5
    discCut = input('Enter the discrepancy cutoff value: ');
 end
 if nargin < 6
-   numNeigh = input('Enter the number of neighborhoods to retain for each nucleotide: '); 
+   numNeigh = input('Enter the number of neighborhoods to retain for each nucleotide: ');
 end
 if nargin < 7
    bandwidth = input('Enter the band width for the seed alignment: ');
@@ -60,7 +57,7 @@ if ischar(NTList1)
       end
    else
       NTList1 = {NTList1};
-   end  
+   end
 end
 if iscell(NTList1),
    [Indices1 chains] = zIndexLookup(File1,NTList1);
@@ -73,7 +70,7 @@ if iscell(NTList1),
    end
 else
   Indices1 = NTList1;
-end  
+end
 
 if ischar(NTList2),
    if isequal('all',lower(strtrim(NTList2)))
@@ -88,12 +85,12 @@ if ischar(NTList2),
       end
    else
       NTList2 = {NTList2};
-   end  
+   end
 end
 
 if iscell(NTList2),
    [Indices2 chains] = zIndexLookup(File2,NTList2,'');
-   
+
    for i=1:length(chains)
       if length(chains{i})>1
          Chain2 = input('Enter the chain identifier for the second structure: ','s');
@@ -103,7 +100,7 @@ if iscell(NTList2),
    end
 else
   Indices2 = NTList2;
-end 
+end
 
 if numNeigh > nchoosek(length(Indices1)-1,3)
     fprintf('ERROR: Neighborhood parameter too high based on size of structure.\n')
@@ -127,8 +124,8 @@ B = triu(File2.Distance);                       % don't want duplicate entries r
 [rA cA] = find(A<maxdist & A>0);
 [rB cB] = find(B<maxdist & B>0);
 [S1 IX] = sort(rA);
-rA = S1;           
-cA = cA(IX);                                    
+rA = S1;
+cA = cA(IX);
 length(rA);
 [S2 IX] = sort(rB);
 rB = S2;
@@ -176,7 +173,7 @@ end
 [S1 IX] = sort(align1);
 align1 = S1;
 align2 = align2(IX);
-  
+
 GappedAs=find(align2==0);
 for p=GappedAs
    tmp = 0;
@@ -192,17 +189,17 @@ for p=GappedAs
    end
    align2(p)=tmp;
 end
- 
+
 SB=[];
 VMI=[];         %This will be a matrix containing the vertices that are created
-                  %eg. if VMI(1) =[2 3], there was a vertex created for the 
+                  %eg. if VMI(1) =[2 3], there was a vertex created for the
                   %2nd A neighborhood and 3rd B neighborhood
 nA=length(AQuads(:,1));
 nB=length(BQuads(:,1));
 
 List=cell(length(A),length(B));     %List{i,j} is a vector indicating the vertices that align
                                     %nucleotide i of A with nucleotide j of B
-                                    
+
 % Cutoff values for screening criterion
 cut2=4*4*2*discCut*discCut;
 cut3=4*4*3*discCut*discCut;
@@ -215,7 +212,7 @@ for i = 1:nA
    SB(2)=align2(AQuads(i,2));
    SB(3)=align2(AQuads(i,3));
    SB(4)=align2(AQuads(i,4));
-   for j = 1:nB      
+   for j = 1:nB
       if abs(SB(1)-BQuads(j,1))<SA && abs(SB(2)-BQuads(j,2))<SA  && abs(SB(3)-BQuads(j,3))<SA && abs(SB(4)-BQuads(j,4))<SA
          screened=false;
          for k1 = 1:3
@@ -233,7 +230,7 @@ for i = 1:nA
                end
             end
           end
-           
+
          if screened == false
             for k1 = 1:2
                if screened == false
@@ -273,7 +270,7 @@ for i = 1:nA
                List{AQuads(i,2),BQuads(j,2)}=[List{AQuads(i,2),BQuads(j,2)} length(VMI(:,1))];
                List{AQuads(i,3),BQuads(j,3)}=[List{AQuads(i,3),BQuads(j,3)} length(VMI(:,1))];
                List{AQuads(i,4),BQuads(j,4)}=[List{AQuads(i,4),BQuads(j,4)} length(VMI(:,1))];
-            end   
+            end
          end
       end
    end
@@ -293,7 +290,7 @@ clear B;
 
 maximalClique = rGetMaximalClique(EM);
 CLB = length(maximalClique);
-    
+
 refineMore=true;
 numLoop=0;
 fprintf('Preprocessing...\n');
@@ -329,7 +326,7 @@ else
       fprintf('Invalid user input.\n');
       method = input('Use full clique finding method? Y/N :','s');
    end
-   if strcmpi(method,'y') 
+   if strcmpi(method,'y')
       MC = rCliqueBB(EM,'c');
    else
       MC = rGetMaximalClique(EM);
@@ -339,7 +336,7 @@ end
 fprintf('Producing Alignment Output...\n');
 % Convert clique into corresponding alignment
 Z=VMI(MC,:);
-tmpAlmnt = [AQuads(Z(:,1),1) BQuads(Z(:,2),1); 
+tmpAlmnt = [AQuads(Z(:,1),1) BQuads(Z(:,2),1);
             AQuads(Z(:,1),2) BQuads(Z(:,2),2);
             AQuads(Z(:,1),3) BQuads(Z(:,2),3);
             AQuads(Z(:,1),4) BQuads(Z(:,2),4)];  %unsorted, with duplicates
@@ -347,11 +344,11 @@ tmpAlmnt = [AQuads(Z(:,1),1) BQuads(Z(:,2),1);
 tmpAlmnt(:,1)=S1;
 tmpAlmnt(:,2) = tmpAlmnt(IX,2);    %sorted
 [b m] = unique(tmpAlmnt(:,1));
-Indnums1=b;                         
+Indnums1=b;
 Indnums2=tmpAlmnt(m,2);            %no duplicates
 
 %The following are the indices that are aligned
-AlignedIndices1 = Indices1(Indnums1);    
+AlignedIndices1 = Indices1(Indnums1);
 AlignedIndices2 = Indices2(Indnums2);
 
 %AlignedNTs contains the nucleotide number, base and chain of each aligned nucleotide

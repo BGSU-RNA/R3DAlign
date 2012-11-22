@@ -11,6 +11,7 @@
 *.vi
 *~
 *.sass-cache
+*.asv
 
 # OS or Editor folders
 .DS_Store
@@ -45,8 +46,6 @@ build/buildinfo.properties
 build/config/buildinfo.properties
 
 # project-specific
-*.m~
-*.asv
 R3D*.fasta
 R3D*.pdf
-!R3D Align User Manual.pdf
+!R3D_Align_User_Manual.pdf
