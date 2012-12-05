@@ -258,29 +258,29 @@ for j=[2 5]
          Range = Excel.Range(['E' num2str(i)]);
       end
       switch lower(strtrim(FinalListing{i,j}))
-         case 'cww'
+         case {'cww','ncww'}
             Range.Interior.ColorIndex = 4;
-         case {'tsh','ths'}
+         case {'tsh','ths','ntsh','nths'}
             Range.Interior.ColorIndex = 38;
-         case {'cws','csw'}
+         case {'cws','csw','ncws','ncsw'}
             Range.Interior.ColorIndex = 33;
-         case {'tws','tsw'}
+         case {'tws','tsw','ntws','ntsw'}
             Range.Interior.ColorIndex = 41;     
-         case 'tss'
+         case {'tss','ntss'}
             Range.Interior.ColorIndex = 22;
-         case {'thw','twh'}
+         case {'thw','twh','nthw','ntwh'}
             Range.Interior.ColorIndex = 45; 
-         case 'css'
+         case {'css','ncss'}
             Range.Interior.ColorIndex = 36;
-         case {'chs','csh'}
+         case {'chs','csh','nchs','ncsh'}
             Range.Interior.ColorIndex = 7; 
-         case {'chw','cwh'}
+         case {'chw','cwh','nchw','ncwh'}
             Range.Interior.ColorIndex = 40;
-         case 'thh'
+         case {'thh','nthh'}
             Range.Interior.ColorIndex = 12;
-         case 'tww'
+         case {'tww','ntww'}
             Range.Interior.ColorIndex = 6;   
-         case 'chh'
+         case {'chh','nchh'}
             Range.Interior.ColorIndex = 9;
       end
    end
