@@ -1,4 +1,4 @@
-% drNeedlemanWunsch(seq1,seq2,p,d) aligns sequences seq1 and seq2 using probability p of base conservation and gap penalty d.  
+% drNeedlemanWunsch(seq1,seq2,p,d) aligns sequences using probability p of base conservation and gap penalty d.  
 % align1 and align2 list which indices are aligned  
 function [align1,align2] = drNeedlemanWunsch(File1,Indices1,File2,Indices2,p,d)
 
@@ -29,7 +29,6 @@ end
 
 S1 = seq1'*ones(1,M);
 S2 = ones(N,1)*seq2;
-
 S = log(p)*(S1==S2) + log((1-p))*(S1~=S2) - log(pa*pb); %Scoring Matrix
 
 for i = 1:N,
