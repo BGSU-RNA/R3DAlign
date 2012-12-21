@@ -1,6 +1,6 @@
 % File1 and File2 and can pdb id's such as '1s72' and '2j01' or they can be
 % the variables containing the molecule information returned from
-% zGetNTData.
+% zAddNTData.
 
 % Chain1 is a cell array containing the chains (in character format) of the
 % fragments to be aligned.  NTList1 is a cell the same size as Chain1 and
@@ -63,31 +63,28 @@ else
        end
    end
 end
-if ~(exist('FR3DSource') == 7),        %#ok<*EXIST> % if directory doesn't yet exist
-   mkdir('FR3DSource');
+addpath(genpath([pwd filesep 'FR3D']));
+addpath([pwd filesep 'R3DAlign']);
+if ~(exist([pwd filesep 'PDBFiles']) == 7),        % if directory doesn't yet exist
+   mkdir([pwd filesep 'PDBFiles']);
 end
-path(path,[pwd filesep 'FR3DSource']);
-if ~(exist('PDBFiles') == 7),        % if directory doesn't yet exist
-  mkdir('PDBFiles');
+addpath([pwd filesep 'PDBFiles']);
+if ~(exist([pwd filesep 'PrecomputedData']) == 7),        % if directory doesn't yet exist
+   mkdir([pwd filesep 'PrecomputedData']);
 end
-path(path,[pwd filesep 'PDBFiles']);
-if ~(exist('PrecomputedData') == 7),        % if directory doesn't yet exist
-   mkdir('PrecomputedData');
+addpath([pwd filesep 'PrecomputedData']);
+if ~(exist([pwd filesep 'Neighborhoods']) == 7),        % if directory doesn't yet exist
+   mkdir([pwd filesep 'Neighborhoods']);
 end
-path(path,[pwd filesep 'PrecomputedData']);
-path(path,[pwd filesep 'R3DAlign']);
-if ~(exist('Neighborhoods') == 7),        % if directory doesn't yet exist
-   mkdir('Neighborhoods');
+% path(path,[pwd filesep 'Neighborhoods']);
+if ~(exist([pwd filesep 'Sequence Alignments']) == 7),        % if directory doesn't yet exist
+   mkdir([pwd filesep 'Sequence Alignments']);
 end
-   path(path,[pwd filesep 'Neighborhoods']);
-if ~(exist('Sequence Alignments') == 7),        % if directory doesn't yet exist
-   mkdir('Sequence Alignments');
+% path(path,[pwd filesep 'Sequence Alignments']);
+if ~(exist([pwd filesep 'R3D Align Output']) == 7),        % if directory doesn't yet exist
+   mkdir([pwd filesep 'R3D Align Output']);
 end
-path(path,[pwd filesep 'Sequence Alignments']);
-if ~(exist('R3D Align Output') == 7),        % if directory doesn't yet exist
-   mkdir('R3D Align Output');
-end
-path(path,[pwd filesep 'R3D Align Output']);
+% path(path,[pwd filesep 'R3D Align Output']);
 if ~(exist(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams')) == 7),        % if directory doesn't yet exist
    mkdir(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
 end
@@ -132,11 +129,11 @@ try
      fprintf('Loading PDB Info...\n');
      if isequal(File1,'uploaded')
         Filename1 = [Query.Name '_1'];
-        File1 = zGetNTData(Filename1,0);
+        File1 = zAddNTData(Filename1,0);
         File1.Filename=Query.UploadName1;
      else
         Filename1 = upper(File1);
-        File1 = zGetNTData(Filename1,0);
+        File1 = zAddNTData(Filename1,0);
      end
    else
       Filename1 = upper(File1.Filename);
@@ -149,7 +146,7 @@ catch %#ok<CTCH>
    return;
 end
 
-if isempty(File1.Backbone)
+if File1.NumNT == -1
    ErrorMsg='ERROR: Unable to load PDB file for Molecule 1.';
    if isequal(Query.Type,'web')
       save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
@@ -161,11 +158,11 @@ try
    if ischar(File2),
       if isequal(File2,'uploaded')
          Filename2 = [Query.Name '_2'];
-         File2 = zGetNTData(Filename2,0);
+         File2 = zAddNTData(Filename2,0);
          File2.Filename=Query.UploadName2;
       else
          Filename2 = upper(File2);
-         File2 = zGetNTData(Filename2,0);
+         File2 = zAddNTData(Filename2,0);
       end
    else
       Filename2 = upper(File2.Filename);
@@ -178,7 +175,7 @@ catch %#ok<CTCH>
    return;
 end
 
-if isempty(File2.Backbone)
+if File1.NumNT == -1
    ErrorMsg='ERROR: Unable to load PDB file for Molecule 2.';
    if isequal(Query.Type,'web')
      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
@@ -340,7 +337,7 @@ else
    end
 
    if isequal(Query.Type,'web') && ~isequal(Query.SeedName,'')
-      FASTA = zReadFASTA([Query.Name '.fasta']);
+      FASTA = zReadFASTA(['seed_upload_file' '.fasta']);
       delete(['./SeedAlignments/' Query.Name '.fasta']);
       File1Sequence=cat(2,File1.NT(Indices1).Base);
       File2Sequence=cat(2,File2.NT(Indices2).Base);
@@ -653,12 +650,12 @@ WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList
 catch ME
   ME.identifier
   ME.message
+  AlignedIndices1=[];
+  AlignedIndices2=[];
 %   ME.stack
   if (strcmp(ME.identifier,'MATLAB:nomem'))
      ErrorMsg='Out of Memory';
      Query.Time=toc(tStart);
-     AlignedIndices1=[];
-     AlignedIndices2=[];
      AlignedNTs1{1,1}=[];
      AlignedNTs2{1,1}=[];
      save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2');
@@ -669,6 +666,7 @@ catch ME
      end
      pause;
   end
+  ErrorMsg = ME.message;
   return;
 end
 end
@@ -688,7 +686,7 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    if length(AlignedIndices1)>4
       rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename);
       movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
-      copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
+%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    end
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
@@ -696,15 +694,15 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
-   copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.txt']), fullfile(pwd, 'R3D Align Output', 'Text Alignments'));   
+%    copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.txt']), fullfile(pwd, 'R3D Align Output', 'Text Alignments'));   
    rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query);    
-   if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2
-      copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xlsx']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-   elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2
-      copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xls']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-   else
-      disp('File not found for rAnalyzeAlignment');
-   end
+%    if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2
+%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xlsx']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
+%    elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2
+%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xls']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
+%    else
+%       disp('File not found for rAnalyzeAlignment');
+%    end
 end                  
 end
 

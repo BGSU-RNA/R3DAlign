@@ -2,19 +2,17 @@ function [] = rWriteAlignmentFasta(File1,NTIndices1,File2,NTIndices2,AlignedNTIn
 
 if ischar(File1),
   Filename = File1;
-  File1 = zGetNTData(Filename,0);
+  File1 = zAddNTData(Filename);
 end
 if ischar(File2),
   Filename = File2;
-  File2 = zGetNTData(Filename,0);
+  File2 = zAddNTData(Filename);
 end
 
 File(1)=File1;
 File(2)=File2;
 
-date = regexprep(datestr(now),':', '-');
-FastaName=['R3D Align ' File1.Filename ' ' File2.Filename ' ' date(1:17) '.fasta'];
-
+FastaName=[filename '.fasta'];
 fidOUT = fopen(FastaName,'w+');
 
 numAl=length(AlignedNTIndices1);
@@ -47,6 +45,11 @@ end
 
 L = length(Alignment);
 for k=1:2,
+  if k==1
+    File=File1;
+  else
+    File=File2;
+  end
   if ischar(NTList{k}) && ~isequal(lower(NTList{k}),'all')
      fprintf(fidOUT,'> %s %s\r\n',File(k).Filename,NTList{k});
   elseif iscell(NTList{k})

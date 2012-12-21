@@ -49,3 +49,6 @@ build/config/buildinfo.properties
 R3D*.fasta
 R3D*.pdf
 !R3D_Align_User_Manual.pdf
+Neighborhoods
+Sequence\ Alignments
+R3D\ Align\ Output
