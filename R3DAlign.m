@@ -1,18 +1,20 @@
 % File1 and File2 and can pdb id's such as '1s72' and '2j01' or they can be
 % the variables containing the molecule information returned from
 % zAddNTData.
-
 % Chain1 is a cell array containing the chains (in character format) of the
-% fragments to be aligned.  NTList1 is a cell the same size as Chain1 and
+% fragments to be aligned.  
+% NTList1 is a cell the same size as Chain1 and
 % contains the nucleotide numbers of the fragments.  If all nucleotides
-% from a chain are to be aligned, 'all' is an acceptable input.
-% discCut is the discrepancy cutoff
+% from a chain are to be aligned, {'all'} is an acceptable input.
+% discCut is the discrepancy cutoff; use a cell array for iterative alignment
 % numNeigh is the number of neighborhoods for each nucleotide
 % cliqueMethod is either 'greedy' or 'full'
 % Query.Type is either 'web' or 'local'.  Query.Name is the 13 character id
 %   set by WebR3DAlign
-% seed1 and seed2 are optional seed alignments. They can be
+% seed1 and seed2 are optional seed alignments. They can be ...
+
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
+
 tStart=tic;
 try
 if ~isfield(Query,'currIter')
@@ -400,7 +402,9 @@ else
       I2=Indices2(align2);
       rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
-      rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename);
+      rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
+
+
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
@@ -411,7 +415,7 @@ else
 
 % For each nt in A aligned with a gap, the nearest aligned nt in B is found
 % to use as the center of the band for that nt
-   for i =1:length(Indices1)
+   for i = Indices1,
       if ~any(align1==i)
          align1 = [align1 i]; %#ok<AGROW>
          align2 = [align2 0]; %#ok<AGROW>
@@ -674,7 +678,7 @@ end
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
 if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
    if length(AlignedIndices1)>4
-      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name);
+      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
    end
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
@@ -684,7 +688,7 @@ if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
    save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg', 'Query');
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
    if length(AlignedIndices1)>4
-      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename);
+      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
       movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    end
