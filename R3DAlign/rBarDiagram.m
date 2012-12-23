@@ -3,7 +3,15 @@
 % AlignedNTList1, 2 are the indices of aligned nucleotides
 % filename is for saving as PDF and jpg
 
-function [A,B] = rBarDiagram(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,filename)
+function [A,B] = rBarDiagram(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,filename,T)
+
+if nargin < 7,
+  filename = '';                          % name for output pdf file, if any
+end
+
+if nargin < 8,
+  T = 'R3D Align';                        % text to put next to bar diagram
+end
 
 View(8) = 1;                              % don't put gaps in bar diagram
 View(9) = 1;                              % display the numbers
@@ -72,7 +80,8 @@ for p=1:numBars
    hold on
    plot([0 20],[r2 r2], 'k');
    hold on
-   text(-.5, (r1+r2)/2, 'R3D Align', 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', 8);
+
+   text(-.5, (r1+r2)/2, T, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', 8);
 end
    
 axis([-.15 20 -.1-numBars*0.075 .7-numBars*0.075]);
@@ -81,7 +90,7 @@ colorbar('southoutside','XTickLabel',{'0.1','0.2','0.3','0.4','0.5','0.6','0.7',
 
 axis off
 
-if nargin >= 7,
+if length(filename) > 0,
   orient portrait
   set(gcf,'papersize',[11 8.5])
   set(gcf,'paperposition',[.25 .25 10.5 8]) 
