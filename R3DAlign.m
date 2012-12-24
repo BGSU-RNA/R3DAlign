@@ -420,33 +420,10 @@ else
       clear I1 I2;
    end
 
+% Augment alignment with near matches
 % For each nt in A aligned with a gap, the nearest aligned nt in B is found
 % to use as the center of the band for that nt
-   for i = Indices1,
-      if ~any(align1==i)
-         align1 = [align1 i]; %#ok<AGROW>
-         align2 = [align2 0]; %#ok<AGROW>
-      end
-   end
-   [S1 IX] = sort(align1);
-   align1 = S1; %#ok<NASGU>
-   align2 = align2(IX);
-
-   GappedAs=find(align2==0);
-   for p=GappedAs
-      tmp = 0;
-      ct = 0;
-      while tmp == 0
-         if tmp == 0
-            tmp = align2(max(p-ct,1));
-         end
-         if tmp == 0
-            tmp = align2(min(p+ct,length(align2)));
-         end
-         ct=ct+1;
-      end
-      align2(p)=tmp;
-   end
+  [align1,align2] = rAugmentAlignment(Indices1,align1,align2);
 
    SB=[];
    VMI=[];         %This will be a matrix containing the vertices that are created
@@ -648,9 +625,12 @@ end
       AlignedNTs1{i,1}=File1.NT(AlignedIndices1(i)).Number;
       AlignedNTs1{i,2}=File1.NT(AlignedIndices1(i)).Chain;
       AlignedNTs1{i,3}=File1.NT(AlignedIndices1(i)).Base;
+      AlignedNTs1{i,4}=AlignedIndices1(i);
+      
       AlignedNTs2{i,1}=File2.NT(AlignedIndices2(i)).Number;
       AlignedNTs2{i,2}=File2.NT(AlignedIndices2(i)).Chain;
       AlignedNTs2{i,3}=File2.NT(AlignedIndices2(i)).Base;
+      AlignedNTs2{i,4}=AlignedIndices2(i);
    end
 
    save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
