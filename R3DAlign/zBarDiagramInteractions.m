@@ -1,11 +1,15 @@
-% zBarDiagramInteractions(File,A,View,Location) draws circular arcs representing pairwise interactions, with nucleotides spaced along a line as given by A
+% zBarDiagramInteractions(File,NTList,A,View,Location) draws circular arcs representing pairwise interactions, with nucleotides spaced along a line as given by A
 
-function [m] = zBarDiagramInteractions(File,A,View,Location)
+function [m] = zBarDiagramInteractions(File,NTList,A,View,Location)
 
-Thickness = 2;
+if length(NTList) > 1000,
+  Thickness = 0.2;
+else
+  Thickness = 1;
+end
 
-E  = fix(abs(File.Edge));
-C  = File.Crossing;
+E  = fix(abs(File.Edge(NTList,NTList)));
+C  = File.Crossing(NTList,NTList);
 
 Color = zKeepZeros(zSparseValues(E,1,1),C);      % nested cWW
 Color = Color + 2*zKeepZeros(zSparseRange(E,2,13,1),C); % nested non-cWW
@@ -17,7 +21,7 @@ clear E C
 
 [i,j,c] = find(triu(Color));            % keep one of each interaction
 
-BP = abs(File.BasePhosphate);           % 
+BP = abs(File.BasePhosphate(NTList,NTList));           % 
 BP = zSparseRange(BP,0,99,1);           % extract BPh interactions
 [ii,jj,cc] = find(6*BP);                % base-phosphate interactions
 
@@ -27,7 +31,7 @@ i = [i; ii(k)];                         % append base-phosphate interactions
 j = [j; jj(k)];
 c = [c; cc(k)];
 
-BR = abs(File.BaseRibose);              % 
+BR = abs(File.BaseRibose(NTList,NTList));              % 
 BR = zSparseRange(BR,0,99,1);           % extract BR interactions
 [ii,jj,cc] = find(7*BR);                % base-ribose interactions
 
@@ -59,6 +63,9 @@ switch Location
 end
 
 m = [0 0 0 0];
+
+% interaction i(k),j(k) should be plotted if i(k) and j(k) are in NTList
+% A, x, and y map NTList to coordinates
 
 for k = 1:length(i),
   if View(c(k)) > 0,

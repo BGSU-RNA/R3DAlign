@@ -8,7 +8,7 @@
 % from a chain are to be aligned, {'all'} is an acceptable input.
 % discCut is the discrepancy cutoff; use a cell array for iterative alignment
 % numNeigh is the number of neighborhoods for each nucleotide
-% cliqueMethod is either 'greedy' or 'full'
+% cliqueMethod is either 'greedy' or 'full'; use a cell array for iteration
 % Query.Type is either 'web' or 'local'.  Query.Name is the 13 character id
 %   set by WebR3DAlign
 % seed1 and seed2 are optional seed alignments. They can be ...
@@ -402,8 +402,15 @@ else
       I2=Indices2(align2);
       rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
-      rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
-
+      figure(5)
+      clf
+      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
+      View = [1 1 1 1 0 0 0];
+      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+      axis([0 20 m2(3) m1(4)])
+      figure(1)
+      saveas(gcf,[ShortOutFilename '_int'],'pdf')
 
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
@@ -678,7 +685,15 @@ end
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
 if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
    if length(AlignedIndices1)>4
-      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
+      figure(5)
+      clf
+      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
+      View = [1 1 1 1 0 0 0];
+      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+      axis([0 20 m2(3) m1(4)])
+      saveas(gcf,[Query.Name '_int'],'pdf')
+      figure(1)
    end
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
@@ -688,7 +703,16 @@ if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
    save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg', 'Query');
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
    if length(AlignedIndices1)>4
-      rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
+      figure(5)
+      clf
+      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
+      View = [1 1 1 1 0 0 0];
+      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+      axis([0 20 m2(3) m1(4)])
+      saveas(gcf,[OutFilename '_int'],'pdf')
+      figure(1)
+
       movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    end

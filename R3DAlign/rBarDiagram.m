@@ -26,7 +26,13 @@ if ischar(File2),
 end
 
 numBars=1;
-Thickness = 0.2;                          
+
+if length(AlignedNTList1) > 1000,
+  Thickness = 0.2;
+else
+  Thickness = 1;
+end
+
 clf
 
 r1=0;
