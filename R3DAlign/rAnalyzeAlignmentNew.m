@@ -223,7 +223,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')
 
 % -------------------------------- Calculate IDI of aligned base combinations 
 %                                  with basepairs in 3D structure
-  IDI     = rAlignmentIsostericity(File,AlignedIndices1,AlignedIndices2,0);
+%   IDI     = rAlignmentIsostericity(File,AlignedIndices1,AlignedIndices2,0);
 
   Identical = length(find(cat(1,File(1).NT(AlignedIndices1).Code)==cat(1,File(2).NT(AlignedIndices2).Code)));
   
@@ -270,8 +270,8 @@ if ~strcmp(ErrorMsg,'Out of Memory')
    end
    T{13,2} = mean(Discrep);
    T{14,2} = median(Discrep);
-   T{15,2} = mean(IDI);
-   T{16,2} = median(IDI);
+%    T{15,2} = mean(IDI);
+%    T{16,2} = median(IDI);
    T{17,2} = inAnotB;
    T{18,2} = AwithNear;
    T{19,2} = AwithWrongNear;
@@ -346,8 +346,8 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
       end
       T{6,12} = mean(Discrep);
       T{6,13} = median(Discrep);
-      T{6,14} = mean(IDI);
-      T{6,15} = median(IDI);
+%       T{6,14} = mean(IDI);
+%       T{6,15} = median(IDI);
       T{6,16} = inAnotB;
       T{6,17} = AwithNear;
       T{6,18} = AwithWrongNear;
@@ -397,8 +397,8 @@ else
          end
          T{1,12} = mean(Discrep);
          T{1,13} = median(Discrep);
-         T{1,14} = mean(IDI);
-         T{1,15} = median(IDI);
+%          T{1,14} = mean(IDI);
+%          T{1,15} = median(IDI);
          T{1,16} = inAnotB;
          T{1,17} = AwithNear;
          T{1,18} = AwithWrongNear;

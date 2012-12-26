@@ -1,6 +1,6 @@
 % zAlignmentIsostericity(File,i1,i2) looks at each basepair that can be inferred in File(2) from the alignment i1, i2 and the basepairs in File(1) and calculates the IDI values between the exemplar of the basepair found in File(1) with the exemplar of the base combination from File(2).  It does not use the actual basepair found in File(2), only the base combination that is aligned to the basepair in File(1).
 
-function [IDI] = zAlignmentIsostericity(File,i1,i2,Verbose)
+function [IDI] = rAlignmentIsostericity(File,i1,i2,Verbose)
 
 load PairExemplars
 

@@ -1,6 +1,6 @@
 % zTallyInteractions(File) counts the number of interactions in the files in the variable file, adding each of them as a row of the variable Tally.  zTallyInteractions(File,A1,A2) calculates the number of conserved interactions using aligned nucleotides A1 from File(1) and A2 from File(2)
 
-function [Tally] = zTallyInteractions(File,A1,A2,Verbose)
+function [Tally] = rTallyInteractions(File,A1,A2,Verbose)
 
 if nargin == 1,                         % single file
 
@@ -61,5 +61,5 @@ else                                    % tally conserved interactions
   NewFile.Crossing = File(1).Crossing(A1,A1);
   NewFile.Crossing = File(2).Crossing(A2,A2);
 
-  Tally = zTallyInteractions(NewFile);  
+  Tally = rTallyInteractions(NewFile);  
 end

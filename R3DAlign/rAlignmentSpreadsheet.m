@@ -16,9 +16,7 @@ if ischar(File2),
   File2 = zGetNTData(Filename,0);
 end
 
-File1.Edge
-disp('here')
-[i j k] = find(File1.Edge(NTList1,NTList1))     % find interactions in first file, k is interaction type
+[i j k] = find(File1.Edge(NTList1,NTList1));     % find interactions in first file, k is interaction type
 
 BPAI=zeros(length(i),2);                % will contain indices of nt's with interacting as specified
                                         % will be at most length(i) pairs
@@ -35,7 +33,7 @@ for m = 1:length(i)
         BPAI(ct,2)=NTList1(j(m)); 
       end
 end
-BPAI=BPAI(1:ct,:)         % Were only ct basepairs, not length(i)
+BPAI=BPAI(1:ct,:);         % Were only ct basepairs, not length(i)
 
 %Do the same for second file
 [i j k] = find(File2.Edge(NTList2,NTList2));
