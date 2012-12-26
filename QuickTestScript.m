@@ -17,14 +17,14 @@ clear NTList1 NTList2;
 NTList1{1}='all';
 NTList2{1}='all';
 Query.Type='local';
-d=.4
+d=.4;
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 
       clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
       [Molecule{m1} ' ' Molecule{m2}]
       for iter=1:3
-        for i=1:length(Band{iter})
-          for j=1:length(Neigh{iter})
+        for i=1:length(Band{iter}(:,1))
+          for j=1:length(Neigh{iter}(:,1))
             clear B P D;
             for k=1:iter
               B{k}=Band{iter}(i,k);
