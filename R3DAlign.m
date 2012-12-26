@@ -80,15 +80,12 @@ addpath([pwd filesep 'PrecomputedData']);
 if ~(exist([pwd filesep 'Neighborhoods']) == 7),        % if directory doesn't yet exist
    mkdir([pwd filesep 'Neighborhoods']);
 end
-% path(path,[pwd filesep 'Neighborhoods']);
 if ~(exist([pwd filesep 'Sequence Alignments']) == 7),        % if directory doesn't yet exist
    mkdir([pwd filesep 'Sequence Alignments']);
 end
-% path(path,[pwd filesep 'Sequence Alignments']);
 if ~(exist([pwd filesep 'R3D Align Output']) == 7),        % if directory doesn't yet exist
    mkdir([pwd filesep 'R3D Align Output']);
 end
-% path(path,[pwd filesep 'R3D Align Output']);
 if ~(exist(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams')) == 7),        % if directory doesn't yet exist
    mkdir(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
 end
@@ -138,7 +135,9 @@ try
    else
       Filename1 = upper(File1.Filename);
    end
-catch %#ok<CTCH>
+catch ME1
+   ME1.identifier
+   ME1.message
    ErrorMsg='ERROR: Unable to load PDB file for Molecule 1.';
    if isequal(Query.Type,'web')
       save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
@@ -167,7 +166,9 @@ try
    else
       Filename2 = upper(File2.Filename);
    end
-catch %#ok<CTCH>
+catch ME2
+   ME2.identifier
+   ME2.message
    ErrorMsg='ERROR: Unable to load PDB file for Molecule 2.';
    if isequal(Query.Type,'web')
       save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');

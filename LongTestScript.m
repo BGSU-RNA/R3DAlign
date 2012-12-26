@@ -1,4 +1,5 @@
 clear;
+addpath([pwd filesep 'R3DAlign']);
 Band{1}=[10;30;60;100];
 Band{2}=[200 60;
          200 40;
@@ -81,7 +82,8 @@ Query.Type='local';
 for d=[.4 .5 .6]
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 
-    clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+%     clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+      clearex ('Band','Neigh','Molecule','Chain','NTList1','NTList2','Query','d','m1','m2');
       [Molecule{m1} ' ' Molecule{m2}]
       for iter=1:3
         for i=1:length(Band{iter})
@@ -107,7 +109,8 @@ for d=[.4 .5 .6]
   end
 end
 %%%%%%%%%%%23S alignments%%%%%%%%%%%%%%%%%%
-clearvars -except Band Neigh
+% clearvars -except Band Neigh
+clearex('Band','Neigh');
 % % % % % % Molecule{1} = '2QBG';   %E Coli, Chain B
 % % % % % % Molecule{2} = '2ZJR';   %Deinococcus Radiodurans 2ZJR, Chain X
 % % % % % % Molecule{3} = '3PYO';   %Thermus Thermophilus 3PYO Chain A
@@ -127,7 +130,8 @@ Query.Type='local';
 for d=[.4 .5]
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 
-      clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+%       clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+      clearex('Band','Neigh','Molecule','Chain','NTList1','NTList2','Query','d','m1','m2');
       [Molecule{m1} ' ' Molecule{m2}]
       for iter=1:3
         for i=1:length(Band{iter})
@@ -162,7 +166,9 @@ NTList2{1}='all';
 NTList2{2}='all';
 for d=[.4 .5 .6]
   for m1=1:length(Molecule)-1
-    clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+%     clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d
+%     m1 m2;
+    clearex('Band','Neigh','Molecule','Chain','NTList1','NTList2','Query','d','m1','m');
     [Molecule{m1} ' ' Molecule{5}]
     for iter=1:3
       for i=1:length(Band{iter})
@@ -187,7 +193,8 @@ for d=[.4 .5 .6]
 end
 
 %%%%%%%%%%%5S alignments%%%%%%%%%%%%%%%%%%
-clearvars -except Band Neigh
+% clearvars -except Band Neigh
+clearex('Band','Neigh');
 % % % % % % Molecule{1} = '2QBG';   %E Coli, Chain B
 % % % % % % Molecule{2} = '2ZJR';   %Deinococcus Radiodurans 2ZJR, Chain X
 % % % % % % Molecule{3} = '3PYO';   %Thermus Thermophilus 3PYO Chain A
@@ -209,7 +216,10 @@ Query.Type='local';
 for d=[.4 .5 .6]
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 
-      clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+%       clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d
+%       m1 m2;
+      clearex ('Band','Neigh','Molecule','Chain','NTList1','NTList2','Query','d','m1','m2');
+      clearex
       [Molecule{m1} ' ' Molecule{m2}]
       for iter=1:3
         for i=1:length(Band{iter})

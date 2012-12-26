@@ -1,13 +1,15 @@
-% clear all;
-Band{1}=[20];
+clear;
+addpath([pwd filesep 'R3DAlign']);
+Band{1}=20;
 Band{2}=[40 10];
 Band{3}=[40 20 5];
-Neigh{1}=[5];
+Neigh{1}=5;
 Neigh{2}=[1 3];
 Neigh{3}=[1 2 3;];
 
 %%%%%%%%%%%5S alignments%%%%%%%%%%%%%%%%%%
-clearvars -except Band Neigh
+% clearvars -except Band Neigh
+clearex('Band','Neigh');
 Molecule{1} = '2QBG';   %E Coli
 Molecule{2} = '2ZJR';   %Deinococcus Radiodurans 2ZJR
 Chain{1}='A';   %5S
@@ -20,7 +22,9 @@ Query.Type='local';
 d=.4;
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 
-      clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d m1 m2;
+%       clearvars -except Band Neigh Molecule Chain NTList1 NTList2 Query d
+%       m1 m2;
+      clearex ('Band','Neigh','Molecule','Chain','NTList1','NTList2','Query','d','m1','m2');
       [Molecule{m1} ' ' Molecule{m2}]
       for iter=1:3
         for i=1:length(Band{iter}(:,1))

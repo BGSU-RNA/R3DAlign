@@ -110,6 +110,8 @@ if length(filename) > 0,
     saveas(gcf,BarName,'pdf');
     BarName=[filename '.jpg'];
     saveas(gcf,BarName,'jpg');
+    BarName=[filename '.png'];
+    saveas(gcf,BarName,'png');
     close(gcf);
   else
     saveas(gcf,BarName,'pdf');
