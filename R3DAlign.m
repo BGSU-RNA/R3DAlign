@@ -654,7 +654,6 @@ catch ME
      for k=1:length(ME.stack)
        ME.stack(k)
      end
-     pause;
   end
   ErrorMsg = ME.message;
   return;
