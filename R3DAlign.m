@@ -677,7 +677,7 @@ if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
    VP.Write=1;
    rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-   rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name);
+   rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
    save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg', 'Query');
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
    if length(AlignedIndices1)>4
