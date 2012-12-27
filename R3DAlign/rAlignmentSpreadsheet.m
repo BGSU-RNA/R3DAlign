@@ -241,11 +241,6 @@ for i=1:length(FinalListing)
      FinalListing{i,7}=g;
 end
 
-% if ismac == 1
-%     fprintf('Excel output is disabled on Macs');
-%     return;
-% end
-
 % date = regexprep(datestr(now),':', '-');
 % ExcelName=['R3D Align ' File1.Filename ' ' File2.Filename ' ' date(1:17)];
 ExcelName=SpreadsheetName;
@@ -274,7 +269,10 @@ if length(SpreadsheetName) == 13
    return;
 else
    try
-
+   if ismac == 1
+      fprintf('Excel output is disabled on Macs');
+      return;
+   end
    xlswrite([pwd filesep TempExcelName],FinalListing)
 
    % % % Excel = actxserver('Excel.Application');    
