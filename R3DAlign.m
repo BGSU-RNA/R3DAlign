@@ -669,6 +669,7 @@ if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
       m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
       axis([0 20 m2(3) m1(4)])
       saveas(gcf,[Query.Name '_int'],'pdf')
+      saveas(gcf,[Query.Name '_int'],'png')      
    end
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
