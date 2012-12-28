@@ -4,7 +4,7 @@
 
 function [align1, align2] = rAugmentAlignment(Indices1,align1,align2)
 
-for i = Indices1,
+for i = 1:length(Indices1),
   if ~any(align1==i)
     align1 = [align1 i]; %#ok<AGROW>
     align2 = [align2 0]; %#ok<AGROW>
