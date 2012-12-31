@@ -1,4 +1,4 @@
-function [] = rWriteAlignmentFasta(File1,NTIndices1,File2,NTIndices2,AlignedNTIndices1,AlignedNTIndices2,NTList,filename)
+function [] = rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,filename)
 
 if ischar(File1),
   Filename = File1;
@@ -12,35 +12,51 @@ end
 FastaName=[filename '.fasta'];
 fidOUT = fopen(FastaName,'w+');
 
-numAl=length(AlignedNTIndices1);
-Alignment=zeros(length(NTIndices1)+length(NTIndices2)-numAl,2);
+numAl=length(AlignedIndices1);
+Alignment=zeros(length(Indices1)+length(Indices2)-numAl,2)-99999;
 
-for i=1:length(NTIndices1)
-   t=find(AlignedNTIndices1==NTIndices1(i));
+for i=1:length(Indices1)
+   t=find(AlignedIndices1==Indices1(i));
    if isempty(t)
-      Alignment(i,:)=[NTIndices1(i) 0];
+      Alignment(i,:)=[Indices1(i) -99999];
    else
-      Alignment(i,:)=[NTIndices1(i) AlignedNTIndices2(t)];
+      Alignment(i,:)=[Indices1(i) AlignedIndices2(t)];
    end
 end
 
-ct=length(NTIndices1);
+ct=length(Indices1);
 
-for i=NTIndices2
-   if ~any(AlignedNTIndices2==i);
-       s=find(Alignment(:,2)>i,1,'first');
-       if isempty(s)
-          ct=ct+1;
-          Alignment(ct,:)=[0 i];
-       else          
-          Alignment(s+1:ct+1,:)=Alignment(s:ct,:);
-          Alignment(s,:)=[0 i];
-          ct=ct+1;
+for i=Indices2
+   if ~any(AlignedIndices2==i);
+       Diff=abs(i-Alignment(:,2));
+       if ~isempty(find(Diff==0))
+           disp('Problem')
+           return;
        end
+       [V loc]=min(Diff);
+       if i-Alignment(loc,2) > 0
+           Alignment(loc+2:ct+2,:)=Alignment(loc+1:ct+1,:);
+           Alignment(loc+1,:)=[-99999 i];
+           ct=ct+1;
+       else
+           Alignment(loc+1:ct+1,:)=Alignment(loc:ct,:);
+           Alignment(loc,:)=[-99999 i];
+           ct=ct+1;
+       end
+%        s=find(Alignment(:,2)>i,1,'first');
+%        if isempty(s)
+%           ct=ct+1;
+%           Alignment(ct,:)=[0 i];
+%        else          
+%           Alignment(s+1:ct+1,:)=Alignment(s:ct,:);
+%           Alignment(s,:)=[0 i];
+%           ct=ct+1;
+%        end
    end
 end
 
 L = length(Alignment);
+
 for k=1:2,
   if k==1
     File=File1;
@@ -65,7 +81,7 @@ for k=1:2,
   while C <= L
     c=1;
     while c<=80 && C<=L
-       if Alignment(C,k)==0
+       if Alignment(C,k)==-99999
           fprintf(fidOUT,'-');
        else
           fprintf(fidOUT,'%s', File.NT(Alignment(C,k)).Base);

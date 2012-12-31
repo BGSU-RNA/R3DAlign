@@ -2,10 +2,11 @@
 % the variables containing the molecule information returned from
 % zAddNTData.
 % Chain1 is a cell array containing the chains (in character format) of the
-% fragments to be aligned.  
-% NTList1 is a cell the same size as Chain1 and
-% contains the nucleotide numbers of the fragments.  If all nucleotides
-% from a chain are to be aligned, {'all'} is an acceptable input.
+%   fragments to be aligned.  Examples: {'1'},{'A'},{'3','1'}
+% NTList1 is a cell the same size as Chain1 an
+%   contains the nucleotide numbers of the fragments.  If all nucleotides
+%   from a chain are to be aligned, {'all'} is an acceptable input.  Other
+%   examples: {'all','all'} (if 2 chains are specified); and, {'2:5,7,8'}
 % discCut is the discrepancy cutoff; use a cell array for iterative alignment
 % numNeigh is the number of neighborhoods for each nucleotide
 % cliqueMethod is either 'greedy' or 'full'; use a cell array for iteration

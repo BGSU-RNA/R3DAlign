@@ -49,8 +49,8 @@ for m = 1:length(i)
 end
 BPBI=BPBI(1:ct,:);
 
-BPList1=zeros(length(BPAI)+length(BPBI),2);
-BPList2=zeros(length(BPAI)+length(BPBI),2);
+BPList1=zeros(length(BPAI)+length(BPBI),2)-99999;
+BPList2=zeros(length(BPAI)+length(BPBI),2)-99999;
 ct=0;
 
 %BPList1 will contain the indices of the nucleotides making basepairs in A while
@@ -66,16 +66,16 @@ for i=1:length(BPAI)        %Go through all basepairs in A
    p=find(AlignedNTList1==BPAI(i,1));  %What 1st nt in bp is aligned to, if anything
    r=find(AlignedNTList1==BPAI(i,2));  %What 2nd nt in bp is aligned to, if anything
    if isempty(p)                % 1st nt isn't aligned to anything
-      BPList2(i,1)=0;           
+      BPList2(i,1)=-99999;           
       if isempty(r)             
-         BPList2(i,2)=0;
+         BPList2(i,2)=-99999;
       else
          BPList2(i,2)=AlignedNTList2(r);
       end
    else                         %1st nt is aligned to a nt in B
       BPList2(i,1)=AlignedNTList2(p); 
       if isempty(r)
-         BPList2(i,2)=0;
+         BPList2(i,2)=-99999;
       else
          BPList2(i,2)=AlignedNTList2(r); 
          q=find(BPBI(:,1)==AlignedNTList2(p));
@@ -99,16 +99,16 @@ for i=1:length(BPBI)
    p=find(AlignedNTList2==BPBI(i,1));
    r=find(AlignedNTList2==BPBI(i,2));
    if isempty(p)
-      BPList1(ct,1)=0;
+      BPList1(ct,1)=-99999;
       if isempty(r)
-         BPList1(ct,2)=0;
+         BPList1(ct,2)=-99999;
       else
          BPList1(ct,2)=AlignedNTList1(r);
       end
    else
       if isempty(r)
          BPList1(ct,1)=AlignedNTList1(p);
-         BPList1(ct,2)=0;
+         BPList1(ct,2)=-99999;
       else
          BPList1(ct,1)=AlignedNTList1(p);
          BPList1(ct,2)=AlignedNTList1(r); 
@@ -127,9 +127,9 @@ for i = 1:length(AlignedNTList1)
    if ~any(BPList1(:,1)==AlignedNTList1(i)) || ~any(BPList2(:,1)==AlignedNTList2(i))
       ct=ct+1;
       BPList1(ct,1)=AlignedNTList1(i);
-      BPList1(ct,2)=0;
+      BPList1(ct,2)=-99999;
       BPList2(ct,1)=AlignedNTList2(i);
-      BPList2(ct,2)=0;
+      BPList2(ct,2)=-99999;
    end
 end
 %Add in unaligned nucleotides not involved in any basepairs
@@ -137,18 +137,18 @@ for i = 1:length(NTList1)
    if ~any(BPList1(:,1)==NTList1(i))
       ct=ct+1;
       BPList1(ct,1)=NTList1(i);
-      BPList1(ct,2)=0;
-      BPList2(ct,1)=0;
-      BPList2(ct,2)=0;
+      BPList1(ct,2)=-99999;
+      BPList2(ct,1)=-99999;
+      BPList2(ct,2)=-99999;
    end
 end
 for i = 1:length(NTList2)
    if ~any(BPList2(:,1)==NTList2(i))
       ct=ct+1;
-      BPList1(ct,1)=0;
-      BPList1(ct,2)=0;
+      BPList1(ct,1)=-99999;
+      BPList1(ct,2)=-99999;
       BPList2(ct,1)=NTList2(i);
-      BPList2(ct,2)=0;
+      BPList2(ct,2)=-99999;
    end
 end
 BPList1=BPList1(1:ct,:);
@@ -159,27 +159,34 @@ BPList2=BPList2(1:ct,:);
 BPList1=BPList1(I,:);
 BPList2=BPList2(I,:);
 
-
 %At this point, all basepairs in B with the first nt aligned with a gap are
 % found at the beginning of the list (since the first column of BPList1 is
-% a 0).  These are moved to the locations so that the first column of
+% a -99999).  These are moved to the locations so that the first column of
 % BPList2 is ascending as well.
-num2move=length(find(BPList1(:,1)==0));
+num2move=length(find(BPList1(:,1)==-99999));
 N=length(BPList1(:,1));
 for i=1:num2move
    tmpBP1=BPList1(1,:);
    tmpBP2=BPList2(1,:);
-   P=find(BPList2(num2move+1:N,1)>tmpBP2(1,1),1,'first');
-   if isempty(P)
-      BPList1(1:N-1,:)=BPList1(2:N,:);
-      BPList1(N,:)=tmpBP1;
-      BPList2(1:N-1,:)=BPList2(2:N,:);
-      BPList2(N,:)=tmpBP2;
+   Diff=tmpBP2(1)-BPList2(num2move+1:N,1);
+   [V loc]=min(abs(Diff));
+   if tmpBP2(1)-BPList2(loc+num2move) == 0
+      loc=find(Diff==0,1,'last');
+      BPList1(1:num2move+loc-1,:)=BPList1(2:num2move+loc,:);
+      BPList1(num2move+loc,:)=tmpBP1;
+      BPList2(1:num2move+loc-1,:)=BPList2(2:num2move+loc,:);
+      BPList2(num2move+loc,:)=tmpBP2;
+   elseif tmpBP2(1)-BPList2(loc+num2move) > 0
+      loc=find(Diff==V,1,'last');
+      BPList1(1:num2move+loc-1,:)=BPList1(2:num2move+loc,:);
+      BPList1(num2move+loc,:)=tmpBP1;
+      BPList2(1:num2move+loc-1,:)=BPList2(2:num2move+loc,:);
+      BPList2(num2move+loc,:)=tmpBP2;
    else
-      BPList1(1:num2move+P-2,:)=BPList1(2:num2move+P-1,:);
-      BPList1(num2move+P-1,:)=tmpBP1;
-      BPList2(1:num2move+P-2,:)=BPList2(2:num2move+P-1,:);
-      BPList2(num2move+P-1,:)=tmpBP2;
+      BPList1(1:num2move+loc-2,:)=BPList1(2:num2move+loc-1,:);
+      BPList1(num2move+loc-1,:)=tmpBP1;
+      BPList2(1:num2move+loc-2,:)=BPList2(2:num2move+loc-1,:);
+      BPList2(num2move+loc-1,:)=tmpBP2;
    end
    num2move=num2move-1;
 end
@@ -189,12 +196,12 @@ Discreps = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2
 FinalListing=cell(length(BPList1(:,1)),8);
 
 for i=1:length(FinalListing)
-     if BPList1(i,1)==0
+     if BPList1(i,1)==-99999
          a='---';
      else
          a = [File1.NT(BPList1(i,1)).Chain ':' File1.NT(BPList1(i,1)).Base File1.NT(BPList1(i,1)).Number];
      end
-     if BPList1(i,1)==0 || BPList1(i,2)==0
+     if BPList1(i,1)==-99999 || BPList1(i,2)==-99999
         b=' ';
      else
          if abs(File1.Edge(BPList1(i,1),BPList1(i,2))) ~= 28  % if not 'perp'
@@ -203,17 +210,17 @@ for i=1:length(FinalListing)
             b=' ';
          end
      end
-     if BPList1(i,2)==0
+     if BPList1(i,2)==-99999
          c='---';
      else
          c = [File1.NT(BPList1(i,2)).Chain ':' File1.NT(BPList1(i,2)).Base File1.NT(BPList1(i,2)).Number];
      end
-     if BPList2(i,1)==0
+     if BPList2(i,1)==-99999
          d='---';
      else
          d = [File2.NT(BPList2(i,1)).Chain ':' File2.NT(BPList2(i,1)).Base File2.NT(BPList2(i,1)).Number];
      end
-     if BPList2(i,1)==0 || BPList2(i,2)==0
+     if BPList2(i,1)==-99999 || BPList2(i,2)==-99999
         e=' ';
      else
         if abs(File2.Edge(BPList2(i,1),BPList2(i,2))) ~= 28
@@ -222,12 +229,12 @@ for i=1:length(FinalListing)
            e=' ';
         end
      end
-     if BPList2(i,2)==0
+     if BPList2(i,2)==-99999
          f='---';
      else
          f = [File2.NT(BPList2(i,2)).Chain ':' File2.NT(BPList2(i,2)).Base File2.NT(BPList2(i,2)).Number];
      end
-     if BPList1(i,1)~=0 && BPList2(i,1)~=0
+     if BPList1(i,1)~=-99999 && BPList2(i,1)~=-99999
         g=Discreps(AlignedNTList1==BPList1(i,1));  
      else
 	    g=' ';
