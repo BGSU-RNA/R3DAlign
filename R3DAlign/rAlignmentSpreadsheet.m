@@ -3,7 +3,9 @@ function [] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,A
 
 if strcmp(ErrorMsg,'Out of Memory')
    FinalListing{1,1}=ErrorMsg;
-   xlswrite([pwd filesep SpreadsheetName],FinalListing);
+   if ~ismac
+       xlswrite([pwd filesep SpreadsheetName],FinalListing);
+   end
    return;
 end
 
