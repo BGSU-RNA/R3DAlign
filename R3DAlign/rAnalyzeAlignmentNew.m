@@ -289,9 +289,11 @@ if ~strcmp(ErrorMsg,'Out of Memory')
 %    T{19,2} = NearInAnotWithNearinB;
 %    T{20,2} = NearInBnotWithNearinA;
 
-
+if ~ismac
    xlswrite(SpreadsheetName,T,'Sheet1','I1');
    clear T;
+end
+
 end
 
 if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),'file') && ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),'file')
@@ -368,7 +370,9 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
             T{6,i}=0;
       end
    end
-      xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1','A1');
+      if ~ismac
+         xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1','A1');
+      end
 else
    if exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),'file')
       clear a b;
@@ -419,7 +423,9 @@ else
             T{1,i}=0;
          end
       end
-      xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1',['A' num2str(L+1)]);
+      if ~ismac
+         xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1',['A' num2str(L+1)]);
+      end
    end
 end
 
