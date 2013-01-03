@@ -1,6 +1,6 @@
 % drNeedlemanWunsch(seq1,seq2,p,d) aligns sequences using probability p of base conservation and gap penalty d.  
 % align1 and align2 list which indices are aligned  
-function [align1,align2] = drNeedlemanWunsch(File1,Indices1,File2,Indices2,p,d)
+function [align1,align2,charAlign1,charAlign2] = drNeedlemanWunsch(File1,Indices1,File2,Indices2,p,d)
 
 seq1 = cat(2,File1.NT(Indices1).Base);
 seq2 = cat(2,File2.NT(Indices2).Base);
@@ -43,15 +43,22 @@ i = N;     % current location in seq1
 j = M;     % current location in seq2
 matches = 0;
 ct = 0;
-
+charAlign1=[];
+charAlign2=[];
 while (i > 0) || (j > 0),
   ct=ct+1;
   switch tracematrix(i+1,j+1),
   case 1,
+    charAlign1=['-' charAlign1]; %#ok<*AGROW>
+    charAlign2=[seq2(j) charAlign2];
     j = j - 1;
   case 2,
+    charAlign2=['-' charAlign2];
+    charAlign1=[seq1(i) charAlign1];
     i = i - 1;
   case 3,
+    charAlign1=[seq1(i) charAlign1];
+    charAlign2=[seq2(j) charAlign2];
     align1 = [i align1]; %#ok<AGROW>
     align2 = [j align2]; %#ok<AGROW>
     i = i - 1;

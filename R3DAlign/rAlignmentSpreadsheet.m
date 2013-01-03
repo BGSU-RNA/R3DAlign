@@ -282,12 +282,21 @@ else
       fprintf('Excel output is disabled on Macs');
       return;
    end
-   xlswrite([pwd filesep TempExcelName],FinalListing)
-
+   %Determine if full path is given
+   if isempty(strfind(TempExcelName,':'))
+      xlswrite([pwd filesep TempExcelName],FinalListing)
+   else
+      xlswrite(TempExcelName,FinalListing)
+   end
    % % % Excel = actxserver('Excel.Application');    
    % % % Excel.Workbooks.Open([pwd '\' ExcelName]);
    e = actxserver ('Excel.Application'); % open Activex server
-   ewb = e.Workbooks.Open([pwd '\' TempExcelName]); % open the file
+   if isempty(strfind(TempExcelName,':'))
+      ewb = e.Workbooks.Open([pwd filesep TempExcelName]); % open the file
+   else
+      ewb = e.Workbooks.Open(TempExcelName); % open the file
+   end
+   
    esh = ewb.ActiveSheet; %#ok<NASGU>
    sheet1=e.Worksheets.get('Item', 'Sheet1');
 
@@ -360,9 +369,18 @@ else
    end
    
    xlWorkbookDefault = 51; % it's the Excel constant, not sure how to pass it other way
-   ewb.SaveAs(fullfile(pwd,ExcelName), xlWorkbookDefault)
+   if isempty(strfind(ExcelName,':'))
+      ewb.SaveAs(fullfile(pwd,ExcelName), xlWorkbookDefault)
+   else
+      ewb.SaveAs(ExcelName, xlWorkbookDefault)
+   end
+   
    ewb.Close(false)
    e.Quit
    e.delete
-   delete(fullfile(pwd,[TempExcelName '.xls']));
+   if isempty(strfind(TempExcelName,':'))
+      delete(fullfile(pwd,[TempExcelName '.xls']));
+   else
+      delete([TempExcelName '.xls']);
+   end
 end
