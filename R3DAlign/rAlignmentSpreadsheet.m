@@ -1,4 +1,4 @@
-function [] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,SpreadsheetName,ErrorMsg)
+function [FinalListing] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,SpreadsheetName,ErrorMsg)
 
 
 if strcmp(ErrorMsg,'Out of Memory')
