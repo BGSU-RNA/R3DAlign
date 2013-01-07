@@ -39,7 +39,7 @@ for i1=1:length(FileList)-1
                   disp(['Creating ' SeqFilename2]);
                   M = max(length(Indices1)/length(Indices2),length(Indices2)/length(Indices1));
                   if M < 2
-                     [align1 align2 charAlign1 charAlign2] = rGapNW(File2,Indices2,File1,Indices1,.999,3,2); %#ok<*NASGU,ASGLU>
+                     [align1 align2 charAlign1 charAlign2] = rGapNW(File2,Indices2,File1,Indices1,.999,7,.25); %#ok<*NASGU,ASGLU>
                      save(SeqFilename2, 'align1', 'align2', 'charAlign1', 'charAlign2');
                   else
                      disp(['   Lengths of chains differ by a factor of ' num2str(M) '. File not created']);
@@ -51,7 +51,7 @@ for i1=1:length(FileList)-1
                disp(['Creating ' SeqFilename1]);
                M = max(length(Indices1)/length(Indices2),length(Indices2)/length(Indices1));
                if M < 2
-                  [align1 align2 charAlign1 charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,3,2); %#ok<ASGLU>
+                  [align1 align2 charAlign1 charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,7,.25); %#ok<ASGLU>
                   save(SeqFilename1, 'align1', 'align2', 'charAlign1', 'charAlign2');
                   if exist(SeqFilename2)==2
                      disp([SeqFilename2 ' already exists.']);
