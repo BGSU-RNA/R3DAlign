@@ -1,6 +1,24 @@
-% zCompareAlignmentVectors(Indices1,a1,Indices2,a2) provides diagnostics for alignments given in vectors a1 and a2.  These are cell arrays of vectors which tell which indices align.  Because indices are sometimes out of linear order in a PDB file, we need the mapping from position in the RNA to the indices, which are given by Indices1 and Indices2.
+% zCompareAlignmentVectors(Indices1,a1,Indices2,a2) provides diagnostics for alignments given in vectors a1 and a2.  
+% These are cell arrays of vectors which tell which indices align.  
+% Because indices are sometimes out of linear order in a PDB file, we need the mapping from position in the RNA to the indices, 
+% which are given by Indices1 and Indices2.
 
-function [void] = zCompareAlignmentVectors(Indices1,a1,Indices2,a2,names,m)
+%zCompareAlignment can be run alternatively by passing a cell array of up to 4 saved .mat alignment filenames
+%For example, zrCompareAlignmentVectors({'3V2F(A)all--1S72(0)all_d03_p1_B500_g_d04_p3_B120_g_d05_p9_B20_g','3V2F(A)all--1S72(0)all_d03_p1_B500_g.mat'});
+function [average max1] = zCompareAlignmentVectors(Indices1,a1,Indices2,a2,names,m)
+
+if nargin < 2
+   Filenames=Indices1;
+   for i=1:length(Filenames)
+      load(Filenames{i});
+%       a1{i} = cat(2,AlignedNTs1{:,4}); %#ok<*USENS>
+%       a2{i} = cat(2,AlignedNTs2{:,4});
+      a1{i} = AlignedIndices1; %#ok<*USENS>
+      a2{i} = AlignedIndices2;
+      names{i}=Filenames{i};
+      
+   end
+end
 
 if nargin < 6,
   m = 200;
@@ -25,11 +43,11 @@ for r = 1:length(a1),
 
   [y,i] = sort(c1);
   d1{r} = c1(i);
-  d2{r} = c2(i);
+  d2{r} = c2(i); %#ok<*AGROW>
 
 [length(c1) length(c2) length(i) length(d1{r}) length(d2{r})]
 
-  T = [T names{r} ' is ' co{r} ', '];
+  T = [T names{r} ' is ' co{r} ', ']; %#ok<AGROW>
 
   colors = 'rbgkmc';
 
@@ -49,8 +67,9 @@ for r = 1:length(a1),
     if nargin > 4,
       title([names{r} ' versus ' names{1}]);
     end
+    average=mean(abs(a));
+    max1=max(abs(a));
   end
 end
-
 figure(6)
 xlabel(T)

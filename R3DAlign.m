@@ -61,7 +61,7 @@ else
           end
           ShortOutFilename=OutFilename;
           for i=1:Query.currIter
-             OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i}) '_' cliqueMethod{i}(1)]; %#ok<AGROW>
+             OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
           end
           OutFilename=strrep(OutFilename, '.', '');
           throw(exception);
@@ -226,7 +226,7 @@ for i=1:length(NTList2)
 end
 ShortOutFilename=OutFilename;
 for i=1:Query.currIter
-   OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i}) '_' cliqueMethod{i}(1)]; %#ok<AGROW>
+   OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
 end
 OutFilename=strrep(OutFilename, '.', '');
 NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
@@ -377,7 +377,7 @@ else
          load(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']));
       else
          disp('not loading Sequence Alignment')
-         [align1 align2 charAlign1 charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,3,2); %#ok<NASGU,ASGLU>
+         [align1 align2 charAlign1 charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,7,0.25); %#ok<NASGU,ASGLU>
          save(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']), 'align1', 'align2', 'charAlign1', 'charAlign2')
       end
    else
