@@ -15,6 +15,7 @@
 % seed1 and seed2 are optional seed alignments. They can be ...
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
+%
 tStart=tic;
 if nargin < 11
     Query.Type = 'local';
