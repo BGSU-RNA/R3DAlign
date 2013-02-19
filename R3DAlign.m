@@ -60,6 +60,7 @@ else
           for i=1:length(NTList2)
              OutFilename = [OutFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
           end
+          OutFilename=strrep(OutFilename, ':', '-');
           ShortOutFilename=OutFilename;
           for i=1:Query.currIter
              OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
@@ -190,8 +191,7 @@ Indices1=[];
 Indices2=[];
 
 OutFilename = Filename1;
-NeighAFilename = fullfile(pwd, 'Neighborhoods', Filename1);
-
+NeighAFilename = ['Neighborhoods' filesep Filename1];
 for i=1:length(NTList1)
    OutFilename = [OutFilename '(' Chain1{i} ')' NTList1{i}]; %#ok<AGROW>
    NeighAFilename = [NeighAFilename '(' Chain1{i} ')' NTList1{i}]; %#ok<AGROW>
@@ -208,8 +208,10 @@ for i=1:length(NTList1)
    end
 end
 NeighAFilename = [NeighAFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
+NeighAFilename = strrep(NeighAFilename, ':', '-');
+NeighAFilename = [pwd filesep NeighAFilename];
 OutFilename = [OutFilename '--' Filename2];
-NeighBFilename = [pwd filesep 'Neighborhoods' filesep Filename2];
+NeighBFilename = ['Neighborhoods' filesep Filename2];
 for i=1:length(NTList2)
    OutFilename = [OutFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
    NeighBFilename = [NeighBFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
@@ -225,12 +227,16 @@ for i=1:length(NTList2)
       Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
    end
 end
+OutFilename = strrep(OutFilename, ':', '-');
 ShortOutFilename=OutFilename;
 for i=1:Query.currIter
    OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
 end
-OutFilename=strrep(OutFilename, '.', '');
+OutFilename = strrep(OutFilename, '.', '');
+
 NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
+NeighBFilename = strrep(NeighBFilename, ':', '-');
+NeighBFilename = [pwd filesep NeighBFilename];
 if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat']))==2 %#ok<EXIST>
    disp('loading Final Alignment')
    load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']));
@@ -268,7 +274,6 @@ else
          disp('Error in zMutualDistance')
          Err.identifier
          Err.message
-         pause
          return;
       end
       A = triu(File1.Distance);
@@ -540,13 +545,13 @@ catch Err
 %   Err.stack
   if (strcmp(Err.identifier,'MATLAB:nomem'))
      ErrorMsg='Out of Memory';
-     AlignedIndices1=[];
-     AlignedIndices2=[];
-     save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2');
-     WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
-  else
-     pause;
   end
+  AlignedIndices1=[];
+  AlignedIndices2=[];
+  AlignedNTs1{1,1}=[];
+  AlignedNTs2{1,1}=[];
+  save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2');
+  WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
   return;
 end  
    clear List;
@@ -645,6 +650,7 @@ catch ME
   AlignedIndices2=[];
 %   ME.stack
   if (strcmp(ME.identifier,'MATLAB:nomem'))
+     Query.ErrorMsg = 'Out of Memory';
      ErrorMsg='Out of Memory';
      Query.Time=toc(tStart);
      AlignedNTs1{1,1}=[];
@@ -662,24 +668,26 @@ end
 end
 
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
-if isequal(Query.Type,'web') && ~strcmp(ErrorMsg,'Out of Memory')
-   if length(AlignedIndices1)>4
-      clf
-      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
-      View = [1 1 1 1 0 0 0];
-      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-      axis([0 20 m2(3) m1(4)])
-      saveas(gcf,[Query.Name '_int'],'pdf')
-      saveas(gcf,[Query.Name '_int'],'png')      
+if isequal(Query.Type,'web') 
+   if ~strcmp(ErrorMsg,'Out of Memory')
+      if length(AlignedIndices1)>4
+         clf
+         [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
+         View = [1 1 1 1 0 0 0];
+         m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+         m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+         axis([0 20 m2(3) m1(4)])
+         saveas(gcf,[Query.Name '_int'],'pdf')
+         saveas(gcf,[Query.Name '_int'],'png')      
+      end
+      rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
+      rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
+      VP.Write=1;
+      rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
+      FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
+   %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
+      save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
    end
-   rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
-   rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
-   VP.Write=1;
-   rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-   FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
-%    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
-   save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
    if length(AlignedIndices1)>4
       clf
