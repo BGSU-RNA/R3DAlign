@@ -53,8 +53,9 @@ for p=1:numBars
    else
       B = rNumberBarDiagram(File2,NTList2,View,Thickness,r2,'none');
    end
-     
-   c = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+  
+   if length(AlignedNTList1) > 4
+      c = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
    [s,t] = size(c);
    colo = c;
 
@@ -74,7 +75,9 @@ for p=1:numBars
       M(M==0)=1;
       colo = map(M,:);
    end
-   
+ 
+       
+   end
    i1=AlignedNTList1;
    i2=AlignedNTList2;
    for j = 1:length(i1),

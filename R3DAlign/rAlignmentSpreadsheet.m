@@ -193,7 +193,9 @@ for i=1:num2move
    num2move=num2move-1;
 end
 
-Discreps = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+if length(AlignedNTList1) > 4
+   Discreps = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+end
 
 FinalListing=cell(length(BPList1(:,1)),8);
 
@@ -236,7 +238,7 @@ for i=1:length(FinalListing)
      else
          f = [File2.NT(BPList2(i,2)).Chain ':' File2.NT(BPList2(i,2)).Base File2.NT(BPList2(i,2)).Number];
      end
-     if BPList1(i,1)~=-99999 && BPList2(i,1)~=-99999
+     if BPList1(i,1)~=-99999 && BPList2(i,1)~=-99999 && length(AlignedNTList1) > 4
         g=Discreps(AlignedNTList1==BPList1(i,1));  
      else
 	    g=' ';

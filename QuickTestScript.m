@@ -1,10 +1,10 @@
 clear;
 addpath([pwd filesep 'R3DAlign']);
-% Band{1}=20;
-% Band{2}=[40 10];
+Band{1}=20;
+Band{2}=[40 10];
 Band{3}=[200 70 20];
-% Neigh{1}=5;
-% Neigh{2}=[1 3];
+Neigh{1}=5;
+Neigh{2}=[1 3];
 Neigh{3}=[1 3 9];
 
 %%%%%%%%%%%5S alignments%%%%%%%%%%%%%%%%%%

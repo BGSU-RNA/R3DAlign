@@ -4,7 +4,7 @@
 % true with true, etc.  Evaluate # of conserved nested cWW, non-nested,
 % etc.  Evaluate # of nt's aligned, # of base matches.
 function [T] = rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query)
-if ~strcmp(ErrorMsg,'Out of Memory') 
+if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned') 
    if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2 %#ok<EXIST>
       SpreadsheetName = fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx']);
    elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2 %#ok<EXIST>
@@ -304,7 +304,7 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
    T{2,2}=length(Indices1);
    T{3,2}=length(Indices2);
    T{1,3}='Number of Basepairs';
-   if ~strcmp(ErrorMsg,'Out of Memory')
+   if ~strcmp(ErrorMsg,'Out of Memory') && ~strcmp(ErrorMsg,'None aligned')
       T{2,3}= samebp/2+diffbp/2+inAnotB+AwithNear+AwithWrongNear+AwithNoNT+AwithOneNT;
       T{3,3}= samebp/2+diffbp/2+inBnotA+BwithNear+BwithWrongNear+BwithNoNT+BwithOneNT;
    end
@@ -338,7 +338,7 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
    T{5,29}='Running Time';
   
    T{6,1} = OutFilename;
-   if ~strcmp(ErrorMsg,'Out of Memory')
+   if ~strcmp(ErrorMsg,'Out of Memory') && ~strcmp(ErrorMsg,'None aligned')
       T{6,2} = length(AlignedIndices1);
       T{6,3} = Identical;
       T{6,4} = samebp/2;
@@ -391,7 +391,7 @@ else
    end
    if ~found
       T{1,1} = OutFilename;
-      if ~strcmp(ErrorMsg,'Out of Memory') 
+      if ~strcmp(ErrorMsg,'Out of Memory') && ~strcmp(ErrorMsg,'None aligned')
          T{1,2} = length(AlignedIndices1);
          T{1,3} = Identical;
          T{1,4} = samebp/2;
