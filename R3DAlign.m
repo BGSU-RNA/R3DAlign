@@ -44,7 +44,7 @@ if ~isfield(Query,'currIter')
    end
 else
    if Query.currIter > 1
-       if (~exist('seed1') || isempty(seed1)) && ~isequal(Query.ErrorMsg,'None aligned')
+       if (~exist('seed1') || isempty(seed1))
           exception = MException('MATLAB:nomem','Previous iteration had memory error');
           Indices1=[];
           Indices2=[];
@@ -134,7 +134,8 @@ try
    if ischar(File1),
      fprintf('Loading PDB Info...\n');
      if isequal(File1,'uploaded')
-        Filename1 = [Query.Name '_1'];
+%         Filename1 = [Query.Name '_1'];
+        Filename1 = Query.UploadName1;
         File1 = zAddNTData(Filename1,0);
         File1.Filename=Query.UploadName1;
      else
@@ -147,25 +148,21 @@ try
 catch ME1
    ME1.identifier
    ME1.message
-   ErrorMsg='ERROR: Unable to load PDB file for Molecule 1.';
-   if isequal(Query.Type,'web')
-      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-   end
+   Query.ErrorMsg='Unable to load PDB file for Molecule 1.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
 end
 
-if File1.NumNT == -1
-   ErrorMsg='ERROR: Unable to load PDB file for Molecule 1.';
-   if isequal(Query.Type,'web')
-      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-   end
+if File1.NumNT < 1
+   Query.ErrorMsg='Unable to read PDB file for Molecule 1.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
 end
 
 try
    if ischar(File2),
       if isequal(File2,'uploaded')
-         Filename2 = [Query.Name '_2'];
+         Filename2 = Query.UploadName2;
          File2 = zAddNTData(Filename2,0);
          File2.Filename=Query.UploadName2;
       else
@@ -178,18 +175,17 @@ try
 catch ME2
    ME2.identifier
    ME2.message
-   ErrorMsg='ERROR: Unable to load PDB file for Molecule 2.';
-   if isequal(Query.Type,'web')
-      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-   end
+   Query.ErrorMsg='Unable to load PDB file for Molecule 2.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
 end
 
-if File1.NumNT == -1
-   ErrorMsg='ERROR: Unable to load PDB file for Molecule 2.';
-   if isequal(Query.Type,'web')
-     save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-   end
+if File2.NumNT < 1
+   Query.ErrorMsg='Unable to read PDB file for Molecule 2.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+%    if isequal(Query.Type,'web')
+%      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
+%    end
    return;
 end
 
@@ -523,34 +519,16 @@ else
    end
 
    if isempty(VMI)
-      fprintf('No nucleotides were aligned.\n\n');
-      AlignedNTs1{1,1}=[];
-      AlignedNTs2{1,1}=[];
-      AlignedIndices1=[];
-      AlignedIndices2=[];
       Query.ErrorMsg='None aligned';
-      ErrorMsg='None aligned';
-      save([pwd Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg', 'Query');
-      WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
+      [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
       return;
    end
    
 try
    [EM]=rMakeEdgeMatrix(VMI,List);
 catch Err
-  disp('Error in rMakeEdgeMatrix')
-  Err.identifier
-  Err.message
-%   Err.stack
-  if (strcmp(Err.identifier,'MATLAB:nomem'))
-     ErrorMsg='Out of Memory';
-  end
-  AlignedIndices1=[];
-  AlignedIndices2=[];
-  AlignedNTs1{1,1}=[];
-  AlignedNTs2{1,1}=[];
-  save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2');
-  WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
+  Query.ErrorMsg = ['Edge Matrix Memory Error in Iteration ' num2str(Query.currIter) '.'];
+  [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
   return;
 end  
    clear List;
@@ -645,17 +623,10 @@ WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList
 catch ME
   ME.identifier
   ME.message
-  AlignedIndices1=[];
-  AlignedIndices2=[];
-%   ME.stack
   if (strcmp(ME.identifier,'MATLAB:nomem'))
-     Query.ErrorMsg = 'Out of Memory';
-     ErrorMsg='Out of Memory';
-     Query.Time=toc(tStart);
-     AlignedNTs1{1,1}=[];
-     AlignedNTs2{1,1}=[];
-     save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2');
-     WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
+     Query.ErrorMsg = ['Memory Error in Iteration ' num2str(Query.currIter) '.'];
+     [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+     return;
   else
      for k=1:length(ME.stack)
        ME.stack(k)
@@ -666,9 +637,18 @@ catch ME
 end
 end
 
+function [AlignedNTs1,AlignedNTs2,ErrorMsg] = HandleError(Query)
+   AlignedNTs1{1,1}=[];
+   AlignedNTs2{1,1}=[];
+   ErrorMsg=Query.ErrorMsg;
+   if strcmpi(Query.Type,'local')
+      fprintf('Error: %s \n',ErrorMsg);
+   end
+end
+
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
 if isequal(Query.Type,'web') 
-   if ~strcmp(ErrorMsg,'Out of Memory')
+   if ~strcmp(ErrorMsg,'')
       clf
       [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
       View = [1 1 1 1 0 0 0];
@@ -679,11 +659,9 @@ if isequal(Query.Type,'web')
       saveas(gcf,[Query.Name '_int'],'png')      
       rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
-      
-         VP.Write=1;
-         rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-      
-         rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
+      VP.Write=1;
+      rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
+      rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
    %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
       save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
    end
@@ -727,13 +705,17 @@ function [AlignedNTs1,AlignedNTs2,ErrorMsg] =IterativeAlign(File1,Chain1,NTList1
    end
    ct=2;
    while ct <= L
-      Query.currIter = ct;
-      Query.ErrorMsg=ErrorMsg;
-      if ~isempty(AlignedNTs1{1,1})
-         [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,AlignedNTs1,AlignedNTs2);
+      if ~strcmpi(ErrorMsg,'')
+         break;
       else
-         [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
+         Query.currIter = ct;
+         Query.ErrorMsg=ErrorMsg;
+         if ~isempty(AlignedNTs1{1,1})
+            [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,AlignedNTs1,AlignedNTs2);
+         else
+            [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
+         end
+         ct = ct + 1;
       end
-      ct = ct + 1;
    end
 end
