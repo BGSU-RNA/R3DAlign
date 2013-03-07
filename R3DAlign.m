@@ -647,8 +647,8 @@ function [AlignedNTs1,AlignedNTs2,ErrorMsg] = HandleError(Query)
 end
 
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
-if isequal(Query.Type,'web') 
-   if ~strcmp(ErrorMsg,'')
+if isequal(Query.Type,'web')
+   if strcmp(ErrorMsg,'')
       clf
       [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
       View = [1 1 1 1 0 0 0];
