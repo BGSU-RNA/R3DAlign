@@ -42,40 +42,41 @@ if ~isfield(Query,'currIter')
       bandwidth={bandwidth};
       cliqueMethod={cliqueMethod};
    end
-else
-   if Query.currIter > 1
-       if (~exist('seed1') || isempty(seed1))
-          exception = MException('MATLAB:nomem','Previous iteration had memory error');
-          Indices1=[];
-          Indices2=[];
-          NTList{1}=NTList1;
-          NTList{2}=NTList2;
-          if ischar(File1),
-             OutFilename = File1;
-          else
-             OutFilename = upper(File1.Filename);
-          end
-          for i=1:length(NTList1)
-             OutFilename = [OutFilename '(' Chain1{i} ')' NTList1{i}]; %#ok<AGROW> 
-          end
-          if ischar(File2),
-             OutFilename = [OutFilename '--' File2];
-          else
-             OutFilename = [OutFilename '--' File2.Filename];
-          end
-          for i=1:length(NTList2)
-             OutFilename = [OutFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
-          end
-          OutFilename=strrep(OutFilename, ':', '-');
-          ShortOutFilename=OutFilename;
-          for i=1:Query.currIter
-             OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
-          end
-          OutFilename=strrep(OutFilename, '.', '');
-          throw(exception);
-       end
-   end
 end
+% else
+%    if Query.currIter > 1
+%        if (~exist('seed1') || isempty(seed1))
+%           exception = MException('MATLAB:nomem','Previous iteration had memory error');
+%           Indices1=[];
+%           Indices2=[];
+%           NTList{1}=NTList1;
+%           NTList{2}=NTList2;
+%           if ischar(File1),
+%              OutFilename = File1;
+%           else
+%              OutFilename = upper(File1.Filename);
+%           end
+%           for i=1:length(NTList1)
+%              OutFilename = [OutFilename '(' Chain1{i} ')' NTList1{i}]; %#ok<AGROW> 
+%           end
+%           if ischar(File2),
+%              OutFilename = [OutFilename '--' File2];
+%           else
+%              OutFilename = [OutFilename '--' File2.Filename];
+%           end
+%           for i=1:length(NTList2)
+%              OutFilename = [OutFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
+%           end
+%           OutFilename=strrep(OutFilename, ':', '-');
+%           ShortOutFilename=OutFilename;
+%           for i=1:Query.currIter
+%              OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+%           end
+%           OutFilename=strrep(OutFilename, '.', '');
+%           throw(exception);
+%        end
+%    end
+% end
 addpath(genpath([pwd filesep 'FR3D']));
 % addpath([pwd filesep 'R3DAlign']);
 if ~(exist([pwd filesep 'PDBFiles']) == 7),        % if directory doesn't yet exist
@@ -145,9 +146,7 @@ try
    else
       Filename1 = upper(File1.Filename);
    end
-catch ME1
-   ME1.identifier
-   ME1.message
+catch %#ok<CTCH>
    Query.ErrorMsg='Unable to load PDB file for Molecule 1.';
    [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
@@ -172,9 +171,7 @@ try
    else
       Filename2 = upper(File2.Filename);
    end
-catch ME2
-   ME2.identifier
-   ME2.message
+catch %#ok<CTCH>
    Query.ErrorMsg='Unable to load PDB file for Molecule 2.';
    [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
@@ -183,9 +180,6 @@ end
 if File2.NumNT < 1
    Query.ErrorMsg='Unable to read PDB file for Molecule 2.';
    [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
-%    if isequal(Query.Type,'web')
-%      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-%    end
    return;
 end
 
@@ -244,21 +238,13 @@ if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat'
    load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']));
 else
    disp('not loading Final Alignment')
-   if numNeigh{Query.currIter} > nchoosek(length(Indices1)-1,3)
-      ErrorMsg='ERROR: Neighborhood parameter too high based on size of structure.';
-      if isequal(Query.Type,'web')
-         save([pwd Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-      end
-      AlignedNTs1=[];
-      AlignedNTs2=[];
+   if numNeigh{Query.currIter} > nchoosek(length(Indices1)-1,3)     
+      Query.ErrorMsg='Neighborhood parameter too large based on size of structure 1.';
+      [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
       return;
    elseif numNeigh{Query.currIter} > nchoosek(length(Indices2)-1,3)
-      ErrorMsg='ERROR: Neighborhood parameter too high based on size of structure.';
-      if isequal(Query.Type,'web')
-         save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
-      end
-      AlignedNTs1=[];
-      AlignedNTs2=[];
+      Query.ErrorMsg='Neighborhood parameter too large based on size of structure 2.';
+      [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
       return;
    end
 
@@ -272,10 +258,9 @@ else
       c = cat(1,File1.NT(Indices1).Center);           % will need matrix A later
       try
          File1.Distance = full(zMutualDistance(c,Inf));
-      catch Err
-         disp('Error in zMutualDistance')
-         Err.identifier
-         Err.message
+      catch %#ok<CTCH>
+         Query.ErrorMsg='Error in zMutualDistance.';
+         [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
          return;
       end
       A = triu(File1.Distance);
@@ -353,8 +338,8 @@ else
       File2Sequence=cat(2,File2.NT(Indices2).Base);
 
       if abs(length(FASTA(1).Sequence)-length(File1Sequence))>0 || abs(length(FASTA(2).Sequence)-length(File2Sequence))>0
-         ErrorMsg='ERROR: Seed alignment does not correspond with pdb files.';
-         save([pwd Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
+         Query.ErrorMsg='Seed alignment does not correspond with pdb files.';
+         [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
          return;
       else
          align1=[];
@@ -519,14 +504,18 @@ else
    end
 
    if isempty(VMI)
-      Query.ErrorMsg='None aligned';
-      [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+%       Query.ErrorMsg='None aligned';
+%       [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+      AlignedIndices1 = [];
+      AlignedIndices2 = [];
+      Query.Time=toc(tStart);
+      WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
       return;
    end
    
 try
    [EM]=rMakeEdgeMatrix(VMI,List);
-catch Err
+catch %#ok<CTCH>
   Query.ErrorMsg = ['Edge Matrix Memory Error in Iteration ' num2str(Query.currIter) '.'];
   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
   return;
@@ -643,6 +632,8 @@ function [AlignedNTs1,AlignedNTs2,ErrorMsg] = HandleError(Query)
    ErrorMsg=Query.ErrorMsg;
    if strcmpi(Query.Type,'local')
       fprintf('Error: %s \n',ErrorMsg);
+   elseif isequal(Query.Type,'web')
+      save([pwd filesep Query.Name '.mat'], 'AlignedNTs1', 'AlignedNTs2', 'ErrorMsg','Query');
    end
 end
 
