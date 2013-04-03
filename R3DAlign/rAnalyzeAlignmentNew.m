@@ -217,7 +217,11 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
          File(f).Distance = zMutualDistance(c,16); %#ok<AGROW> % compute distances < 16 Angstroms
       end
    end
-  Discrep = rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
+  if length(AlignedIndices1) > 4
+     Discrep = rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
+  elseif length(AlignedIndices1) == 4
+     Discrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+  end
 %   Discrep = zHistogramDiscrepanciesInAlignment(File,AlignedIndices1,AlignedIndices2);
 
 

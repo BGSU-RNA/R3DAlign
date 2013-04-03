@@ -56,13 +56,21 @@ for p=1:numBars
   
    if length(AlignedNTList1) > 4
       c = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+   elseif length(AlignedNTList1) == 4
+      c = xDiscrepancy(File1,AlignedNTList1,File2,AlignedNTList1);
+   end
+       
    [s,t] = size(c);
    colo = c;
-
+   
+   i1=AlignedNTList1;
+   i2=AlignedNTList2;
+   
    if s == 1,
       for j = 1:length(i1),
          colo(j,1) = c;
       end
+      c=colo;
    end
 
    if (t == 1) && strcmp(class(c),'double'),
@@ -76,10 +84,6 @@ for p=1:numBars
       colo = map(M,:);
    end
  
-       
-   end
-   i1=AlignedNTList1;
-   i2=AlignedNTList2;
    for j = 1:length(i1),
       plot([A(NTList1==i1(j)) B(NTList2==i2(j))], [r1 r2],'Color',colo(j,:),'LineWidth',Thickness);
       hold on

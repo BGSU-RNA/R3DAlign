@@ -81,3 +81,28 @@ NeighMin{3} = 9;
 Band{3}     = 20;
 CliqMeth{3} = 'greedy';
 webWrapper(pdb1,Chain1,Nts1, pdb2,Chain2,Nts2, Disc,NeighMin,Band,CliqMeth,Query);
+
+% First iteration aligns exactly 4 nucleotides (it should run cleanly)
+clear
+Query.Name = '515afe7eabb9e';
+Query.Type = 'web';
+pdb1 = '1KPD';
+pdb2 = '2TPK';
+Chain1{1} = 'A';
+Nts1{1}   = 'all';
+Chain2{1} = 'A';
+Nts2{1}   = 'all';
+Query.SeedName = '';
+Disc{1}     = 0.4;
+NeighMin{1} = 1;
+Band{1}     = 200;
+CliqMeth{1} = 'greedy';
+Disc{2}     = 0.5;
+NeighMin{2} = 3;
+Band{2}     = 70;
+CliqMeth{2} = 'greedy';
+Disc{3}     = 0.5;
+NeighMin{3} = 9;
+Band{3}     = 20;
+CliqMeth{3} = 'greedy';
+webWrapper(pdb1,Chain1,Nts1, pdb2,Chain2,Nts2, Disc,NeighMin,Band,CliqMeth,Query);

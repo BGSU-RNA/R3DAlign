@@ -23,6 +23,9 @@ end
 if ~isfield(Query,'Type')
     Query.Type = 'local';
 end
+if ~isfield(Query,'LoadFinal')
+    Query.LoadFinal = 0;
+end
 if ~isfield(Query,'ErrorMsg')
     Query.ErrorMsg = '';
 end
@@ -233,7 +236,7 @@ OutFilename = strrep(OutFilename, '.', '');
 NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
 NeighBFilename = strrep(NeighBFilename, ':', '-');
 NeighBFilename = [pwd filesep NeighBFilename];
-if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat']))==2 %#ok<EXIST>
+if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat']))==2 && Query.LoadFinal==1 %#ok<EXIST>
    disp('loading Final Alignment')
    load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']));
 else
