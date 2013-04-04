@@ -40,9 +40,9 @@ if View(9) == 1,
    for n = 1:length(nc),
       theta = A(nc(n));
       if isequal(numLoc,'above')
-         text(theta, r+.02, ['Chain ' File.NT(NTList(nc(n))).Chain], 'Rotation', 90, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle', 'FontSize', 6);
+         text(theta-0.3, r+.02, ['Chain ' File.NT(NTList(nc(n))).Chain], 'Rotation', 90, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle', 'FontSize', 6);
       else
-         text(theta, r-.02, ['Chain ' File.NT(NTList(nc(n))).Chain], 'Rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', 6);
+         text(theta-0.3, r-.02, ['Chain ' File.NT(NTList(nc(n))).Chain], 'Rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', 6);
       end
    end
 end
