@@ -195,6 +195,8 @@ end
 
 if length(AlignedNTList1) > 4
    Discreps = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+elseif length(AlignedNTList1) == 4
+   Discreps = xDiscrepancy(File1,AlignedNTList1,File2,AlignedNTList2);
 end
 
 FinalListing=cell(length(BPList1(:,1)),8);

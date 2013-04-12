@@ -1,13 +1,12 @@
 % This file has been adopted from EvalConsensus.m and
 % zCompare16SAlignments;
+% It could be written more generally and efficiently so that it isn't based
+% on the spreadsheet computed by rAlignmentSpreadsheet.
 % Evaluate the number of near basepairs aligned with true basepairs, near with near, 
 % true with true, etc.  Evaluate # of conserved nested cWW, non-nested,
 % etc.  Evaluate # of nt's aligned, # of base matches.
-function [] = rWriteSummaryStatistics(Indices1,Indices2,AlignedIndices1,AlignedIndices2,QueryName,FL)
-%   File(1)=File1;
-%   File(2)=File2;
-%   Tally = rTallyInteractions(File,AlignedIndices1,AlignedIndices2,0);
-%   sum(Tally(1:4))
+function [] = rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,QueryName,FL)
+
    b=FL;
    for i=1:length(b(:,2))
       b(i,2)=lower(strtrim(b(i,2)));
@@ -116,6 +115,14 @@ function [] = rWriteSummaryStatistics(Indices1,Indices2,AlignedIndices1,AlignedI
    
    numbp=samebp+diffbp;
    
+   if length(AlignedIndices1) > 4
+      Discrep = rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
+   elseif length(AlignedIndices1) == 4
+      Discrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+   end
+   
+   GlobDiscrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+   
    Filename=[QueryName '_stats.csv'];
    fidOUT = fopen(Filename,'w+');
    fprintf(fidOUT,'Number of nucleotides in structure 1,%s\r\n', num2str(length(Indices1)));
@@ -129,4 +136,6 @@ function [] = rWriteSummaryStatistics(Indices1,Indices2,AlignedIndices1,AlignedI
    fprintf(fidOUT,'Number of basepairs aligned,%s\r\n', num2str(numbp));
    fprintf(fidOUT,'Percentage of structure 1 basepairs aligned,%s\r\n', num2str(numbp/numbp1*100));
    fprintf(fidOUT,'Percentage of structure 2 basepairs aligned,%s\r\n', num2str(numbp/numbp2*100));
+   fprintf(fidOUT,'Mean local neighborhood discrepancy,%s\r\n', mean(Discrep));
+   fprintf(fidOUT,'Global discrepancy of all aligned nucleotides,%s\r\n', GlobDiscrep);
    fclose(fidOUT);

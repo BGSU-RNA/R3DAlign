@@ -24,7 +24,7 @@ if ~isfield(Query,'Type')
     Query.Type = 'local';
 end
 if ~isfield(Query,'LoadFinal')
-    Query.LoadFinal = 0;
+    Query.LoadFinal = 1;
 end
 if ~isfield(Query,'ErrorMsg')
     Query.ErrorMsg = '';
@@ -236,6 +236,7 @@ OutFilename = strrep(OutFilename, '.', '');
 NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
 NeighBFilename = strrep(NeighBFilename, ':', '-');
 NeighBFilename = [pwd filesep NeighBFilename];
+
 if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat']))==2 && Query.LoadFinal==1 %#ok<EXIST>
    disp('loading Final Alignment')
    load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']));
@@ -606,7 +607,6 @@ end
       AlignedNTs2{i,3}=File2.NT(AlignedIndices2(i)).Base;
       AlignedNTs2{i,4}=AlignedIndices2(i);
    end
-
    save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
 end
 Query.Time=toc(tStart);
@@ -655,8 +655,8 @@ if isequal(Query.Type,'web')
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       VP.Write=1;
       rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-      rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
-   %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
+      FL = rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
+      rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
       save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
    end
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
