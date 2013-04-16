@@ -130,7 +130,6 @@ function [] = rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndic
    fprintf(fidOUT,'Number of nucleotides aligned,%s\r\n', num2str(length(AlignedIndices1)));
    fprintf(fidOUT,'Percentage of structure 1 nucleotides aligned,%s\r\n', num2str(100*length(AlignedIndices1)/length(Indices1)));
    fprintf(fidOUT,'Percentage of structure 2 nucleotides aligned,%s\r\n', num2str(100*length(AlignedIndices2)/length(Indices2)));
-   fprintf(fidOUT,'Number of nucleotides aligned,%s\r\n', num2str(length(AlignedIndices1)));
    fprintf(fidOUT,'Number of basepairs in structure 1,%s\r\n', num2str(numbp1));
    fprintf(fidOUT,'Number of basepairs in structure 2,%s\r\n', num2str(numbp2));
    fprintf(fidOUT,'Number of basepairs aligned,%s\r\n', num2str(numbp));
