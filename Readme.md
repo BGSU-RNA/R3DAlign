@@ -25,3 +25,5 @@ The main program is _R3DAlign.m_. To launch In Matlab or Octave:
 
 Developed by Ryan Rahrig.
 Transferred to Github by Anton Petrov.
+
+Tested on Matlab R2007b and Octave 3.6.3
