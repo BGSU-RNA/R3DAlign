@@ -400,13 +400,20 @@ else
       rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
 
       clf
-      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
+      try
+          [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
+      catch
+          fprintf('Bar diagram could not be generated\n');
+      end
       View = [1 1 1 1 0 0 0];
-      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-      axis([0 20 m2(3) m1(4)])
-      saveas(gcf,[ShortOutFilename '_int'],'pdf')
-
+      try
+          m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+          m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+          axis([0 20 m2(3) m1(4)])
+          saveas(gcf,[ShortOutFilename '_int'],'pdf')
+      catch
+          fprintf('Interaction bar diagram could not be generated\n');
+      end
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
       rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
       movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
@@ -608,7 +615,7 @@ end
 end
 Query.Time=toc(tStart);
 WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
-
+fprintf('Done\n');
 catch ME
   ME.identifier
   ME.message
@@ -658,22 +665,31 @@ if isequal(Query.Type,'web')
    end
 elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
    clf
-   [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
+   try
+       [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
+   catch
+       fprintf('Bar diagram could not be generated\n');
+   end
    View = [1 1 1 1 0 0 0];
-   m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-   m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-   axis([0 20 m2(3) m1(4)])
-   saveas(gcf,[OutFilename '_int'],'pdf')
-   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
+   try
+       m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+       m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+       axis([0 20 m2(3) m1(4)])
+       saveas(gcf,[OutFilename '_int'],'pdf')
+   catch
+        fprintf('Interaction bar diagram could not be generated\n');
+   end
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
-   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
    FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
-   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
 %    copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.txt']), fullfile(pwd, 'R3D Align Output', 'Text Alignments'));   
-   rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query); 
+   try
+       rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query); 
+   catch
+       fprintf('Alignment could not be analyzed\n');
+   end
 %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,FL);
 %    if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xlsx']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
