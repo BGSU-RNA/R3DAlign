@@ -12,6 +12,15 @@ The algorithm is implemented in a program suite and web server called ‘R3D Ali
     git submodule init
     git submodule update
 
+# Usage
+
+The main program is _R3DAlign.m_. To launch In Matlab or Octave:
+
+    cd R3DAlign;
+    addpath(genpath(pwd));
+    % test alignment of two 5S rRNAs
+    [a1,a2] = R3DAlign('2AW4',{'A'},{'all'},'2J01',{'B'},{'all'},0.5,9,50,'greedy');
+
 # Credits
 
 Developed by Ryan Rahrig.
