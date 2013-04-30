@@ -21,6 +21,12 @@ The main program is _R3DAlign.m_. To launch In Matlab or Octave:
     % test alignment of two 5S rRNAs
     [a1,a2] = R3DAlign('2AW4',{'A'},{'all'},'2J01',{'B'},{'all'},0.5,9,50,'greedy');
 
+To produce pdb files, use the following commands:
+
+    Query.Type = 'local';
+    Query.Name = 'output_file'; % will produce output_file.pdb in the current working directory
+    [a1,a2] = R3DAlign('2AW4',{'A'},{'all'},'2J01',{'B'},{'all'},0.5,9,50,'greedy',Query);
+
 # Credits
 
 Developed by Ryan Rahrig.

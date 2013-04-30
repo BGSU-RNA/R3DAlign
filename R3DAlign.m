@@ -690,7 +690,12 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    catch
        fprintf('Alignment could not be analyzed\n');
    end
-%    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,FL);
+   
+   if exist('Query', 'var') && isfield(Query, 'Name')
+       VP.Write=1;
+       rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
+   end
+   %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,FL);
 %    if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xlsx']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
 %    elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2
