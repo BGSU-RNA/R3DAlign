@@ -1,11 +1,13 @@
 function [FinalListing] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,SpreadsheetName,ErrorMsg)
 
+if ~ispc
+    fprintf('Excel output is only available on the Windows platform');
+    return;
+end
 
 if strcmp(ErrorMsg,'Out of Memory')
    FinalListing{1,1}=ErrorMsg;
-   if ~ismac
-       xlswrite([pwd filesep SpreadsheetName],FinalListing);
-   end
+   xlswrite([pwd filesep SpreadsheetName],FinalListing);
    return;
 end
 
@@ -282,10 +284,6 @@ if length(SpreadsheetName) == 13
    return;
 else
    try
-   if ismac == 1
-      fprintf('Excel output is disabled on Macs');
-      return;
-   end
    %Determine if full path is given
    if isempty(strfind(TempExcelName,':'))
       xlswrite([pwd filesep TempExcelName],FinalListing)

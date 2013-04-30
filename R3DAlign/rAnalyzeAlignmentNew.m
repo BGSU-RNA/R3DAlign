@@ -293,7 +293,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
 %    T{19,2} = NearInAnotWithNearinB;
 %    T{20,2} = NearInBnotWithNearinA;
 
-if ~ismac
+if ispc
    xlswrite(SpreadsheetName,T,'Sheet1','I1');
    clear T;
 end
@@ -374,7 +374,7 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
             T{6,i}=0;
       end
    end
-      if ~ismac
+      if ispc
          xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1','A1');
       end
 else
@@ -427,7 +427,7 @@ else
             T{1,i}=0;
          end
       end
-      if ~ismac
+      if ispc
          xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1',['A' num2str(L+1)]);
       end
    end
