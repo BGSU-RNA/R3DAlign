@@ -1,7 +1,9 @@
 function [FinalListing] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,SpreadsheetName,ErrorMsg)
 
+FinalListing = {};
+
 if ~ispc
-    fprintf('Excel output is only available on the Windows platform');
+    fprintf('Excel output is only available on the Windows platform\n');
     return;
 end
 
