@@ -119,9 +119,16 @@ function [] = rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndic
       Discrep = rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
    elseif length(AlignedIndices1) == 4
       Discrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+      Discrep = mean(Discrep);
+   else
+      Discrep = 'N/A';
    end
    
-   GlobDiscrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+   if ~isempty(AlignedIndices1) 
+      GlobDiscrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+   else
+      GlobDiscrep = 'N/A';
+   end
    
    Filename=[QueryName '_stats.csv'];
    fidOUT = fopen(Filename,'w+');
@@ -135,6 +142,6 @@ function [] = rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndic
    fprintf(fidOUT,'Number of basepairs aligned,%s\r\n', num2str(numbp));
    fprintf(fidOUT,'Percentage of structure 1 basepairs aligned,%s\r\n', num2str(numbp/numbp1*100));
    fprintf(fidOUT,'Percentage of structure 2 basepairs aligned,%s\r\n', num2str(numbp/numbp2*100));
-   fprintf(fidOUT,'Mean local neighborhood discrepancy,%s\r\n', mean(Discrep));
+   fprintf(fidOUT,'Mean local neighborhood discrepancy,%s\r\n', Discrep);
    fprintf(fidOUT,'Global discrepancy of all aligned nucleotides,%s\r\n', GlobDiscrep);
    fclose(fidOUT);
