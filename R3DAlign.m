@@ -409,7 +409,9 @@ else
       try
           m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
           m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-          axis([0 20 m2(3) m1(4)])
+          if m1(1) ~= 0 && m2(1) ~= 0
+             axis([0 20 m2(3) m1(4)])
+          end
           saveas(gcf,[ShortOutFilename '_int'],'pdf')
       catch
           fprintf('Interaction bar diagram could not be generated\n');
@@ -652,9 +654,12 @@ if isequal(Query.Type,'web')
       View = [1 1 1 1 0 0 0];
       m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
       m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-      axis([0 20 m2(3) m1(4)])
+      if m1(1) ~= 0 && m2(1) ~= 0
+         axis([0 20 m2(3) m1(4)])
+      end
       saveas(gcf,[Query.Name '_int'],'pdf')
       saveas(gcf,[Query.Name '_int'],'png')      
+      
       rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       VP.Write=1;
@@ -667,17 +672,25 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    clf
    try
        [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
-   catch
+   catch ME
+       for k=1:length(ME.stack)
+          ME.stack(k)
+       end
        fprintf('Bar diagram could not be generated\n');
    end
    View = [1 1 1 1 0 0 0];
    try
        m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
        m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-       axis([0 20 m2(3) m1(4)])
+       if m1(1) ~= 0 && m2(1) ~= 0
+          axis([0 20 m2(3) m1(4)])
+       end
        saveas(gcf,[OutFilename '_int'],'pdf')
-   catch
-        fprintf('Interaction bar diagram could not be generated\n');
+   catch ME
+       for k=1:length(ME.stack)
+          ME.stack(k)
+       end
+       fprintf('Interaction bar diagram could not be generated\n');
    end
 %       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
@@ -687,10 +700,13 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
 %    copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.txt']), fullfile(pwd, 'R3D Align Output', 'Text Alignments'));   
    try
        rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query); 
-   catch
+   catch ME
+       for k=1:length(ME.stack)
+          ME.stack(k)
+       end
        fprintf('Alignment could not be analyzed\n');
    end
-   
+     
    if exist('Query', 'var') && isfield(Query, 'Name')
        VP.Write=1;
        rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);

@@ -2,6 +2,7 @@
 clear
 Query.Name = '5134bd88ed961';
 Query.Type = 'local';
+Query.LoadFinal=0;
 pdb1 = '4IG8';
 pdb2 = '4FY3';
 Chain1{1} = 'B';
@@ -28,6 +29,7 @@ clear
 fprintf('\n');
 Query.Name = '5134c80367b92';
 Query.Type = 'local';
+Query.LoadFinal=0;
 pdb1  = 'uploaded';
 Name1 = '5134c80367b92_1.pdb';
 Query.UploadName1 = '5134c80367b92_1';
@@ -57,6 +59,7 @@ R3DAlign(pdb1,Chain1,Nts1, pdb2,Chain2,Nts2, Disc,NeighMin,Band,CliqMeth,Query);
 clear
 Query.Name = '5134bdfcdb5b3';
 Query.Type = 'local';
+Query.LoadFinal=0;
 pdb1  = 'uploaded';
 Name1 = '5134bdfcdb5b3_1.pdb';
 Query.UploadName1 = '5134bdfcdb5b3_1';
@@ -86,11 +89,41 @@ R3DAlign(pdb1,Chain1,Nts1, pdb2,Chain2,Nts2, Disc,NeighMin,Band,CliqMeth,Query);
 clear
 Query.Name = '515afe7eabb9e';
 Query.Type = 'local';
+Query.LoadFinal=0;
 pdb1 = '1KPD';
 pdb2 = '2TPK';
 Chain1{1} = 'A';
 Nts1{1}   = 'all';
 Chain2{1} = 'A';
+Nts2{1}   = 'all';
+Query.SeedName = '';
+Disc{1}     = 0.4;
+NeighMin{1} = 1;
+Band{1}     = 200;
+CliqMeth{1} = 'greedy';
+Disc{2}     = 0.5;
+NeighMin{2} = 3;
+Band{2}     = 70;
+CliqMeth{2} = 'greedy';
+Disc{3}     = 0.5;
+NeighMin{3} = 9;
+Band{3}     = 20;
+CliqMeth{3} = 'greedy';
+R3DAlign(pdb1,Chain1,Nts1, pdb2,Chain2,Nts2, Disc,NeighMin,Band,CliqMeth,Query);
+
+%Structure(s) with no interactions
+Query.LoadFinal=0;
+Query.Name = '51dd6007cda76';
+Query.Type = 'local';
+pdb1  = 'uploaded';
+Name1 = '51dd6007cda76_1.pdb';
+Query.UploadName1 = '51dd6007cda76_1';
+pdb2 = 'uploaded';
+Name2 = '51dd6007cda76_2.pdb';
+Query.UploadName2 = '51dd6007cda76_2';
+Chain1{1} = 'all';
+Nts1{1}   = 'all';
+Chain2{1} = 'all';
 Nts2{1}   = 'all';
 Query.SeedName = '';
 Disc{1}     = 0.4;

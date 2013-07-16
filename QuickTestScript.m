@@ -19,6 +19,7 @@ clear NTList1 NTList2;
 NTList1{1}='all';
 NTList2{1}='all';
 Query.Type='local';
+Query.LoadFinal=0;
 d=.4;
   for m1=1:length(Molecule)-1
     for m2=m1+1:length(Molecule) 

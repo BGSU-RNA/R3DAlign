@@ -221,6 +221,8 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
      Discrep = rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
   elseif length(AlignedIndices1) == 4
      Discrep = xDiscrepancy(File1,AlignedIndices1,File2,AlignedIndices2);
+  elseif length(AlignedIndices1) == 0
+     Discrep = 0;
   end
 %   Discrep = zHistogramDiscrepanciesInAlignment(File,AlignedIndices1,AlignedIndices2);
 
