@@ -11,7 +11,8 @@
 % numNeigh is the number of neighborhoods for each nucleotide
 % cliqueMethod is either 'greedy' or 'full'; use a cell array for iteration
 % Query.Type is either 'web' or 'local'.  Query.Name is the 13 character id
-%   set by WebR3DAlign
+%   set by WebR3DAlign.  If Query.LoadFinal = 1, previous results are used;
+%   if 0, re-processed.
 % seed1 and seed2 are optional seed alignments. They can be ...
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
@@ -26,6 +27,12 @@ end
 if ~isfield(Query,'LoadFinal')
     Query.LoadFinal = 1;
 end
+if ~isfield(Query,'SeqAlOutputFiles')
+    Query.SeqAlOutputFiles = 1;
+end
+if ~isfield(Query,'OutputFiles')
+    Query.OutputFiles = 1;
+end
 if ~isfield(Query,'ErrorMsg')
     Query.ErrorMsg = '';
 end
@@ -38,7 +45,7 @@ if ~isfield(Query,'currIter')
          [AlignedNTs1,AlignedNTs2,ErrorMsg] = IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2);
       end
       return;
-   else
+   else  %there will be only one iteration and convert variables into cell format
       Query.currIter = 1; %Iteration Number
       discCut={discCut};
       numNeigh={numNeigh};
@@ -46,42 +53,11 @@ if ~isfield(Query,'currIter')
       cliqueMethod={cliqueMethod};
    end
 end
-% else
-%    if Query.currIter > 1
-%        if (~exist('seed1') || isempty(seed1))
-%           exception = MException('MATLAB:nomem','Previous iteration had memory error');
-%           Indices1=[];
-%           Indices2=[];
-%           NTList{1}=NTList1;
-%           NTList{2}=NTList2;
-%           if ischar(File1),
-%              OutFilename = File1;
-%           else
-%              OutFilename = upper(File1.Filename);
-%           end
-%           for i=1:length(NTList1)
-%              OutFilename = [OutFilename '(' Chain1{i} ')' NTList1{i}]; %#ok<AGROW> 
-%           end
-%           if ischar(File2),
-%              OutFilename = [OutFilename '--' File2];
-%           else
-%              OutFilename = [OutFilename '--' File2.Filename];
-%           end
-%           for i=1:length(NTList2)
-%              OutFilename = [OutFilename '(' Chain2{i} ')' NTList2{i}]; %#ok<AGROW>
-%           end
-%           OutFilename=strrep(OutFilename, ':', '-');
-%           ShortOutFilename=OutFilename;
-%           for i=1:Query.currIter
-%              OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
-%           end
-%           OutFilename=strrep(OutFilename, '.', '');
-%           throw(exception);
-%        end
-%    end
-% end
+
 addpath(genpath([pwd filesep 'FR3D']));
-% addpath([pwd filesep 'R3DAlign']);
+%Following was commented to be able to direct to specific R3DAlign folder
+%manually
+% addpath([pwd filesep 'R3DAlign']);  
 if ~(exist([pwd filesep 'PDBFiles']) == 7),        % if directory doesn't yet exist
    mkdir([pwd filesep 'PDBFiles']);
 end
@@ -118,10 +94,10 @@ if nargin < 5
    discCut{Query.currIter} = input('Enter the discrepancy cutoff value: ');
 end
 if nargin < 6
-   numNeigh{Query.currIter} = input('Enter the number of neighborhoods to retain for each nucleotide: ');
+   numNeigh{Query.currIter} = input('Enter the number of neighborhoods for each nucleotide: ');
 end
 if nargin < 7
-   bandwidth{Query.currIter} = input('Enter the band width for the seed alignment: ');
+   bandwidth{Query.currIter} = input('Enter the bandwidth for the seed alignment: ');
 end
 if nargin < 8
    cliqueMethod{Query.currIter} = input('Enter final clique method (Full or Greedy): ','s');
@@ -138,7 +114,6 @@ try
    if ischar(File1),
      fprintf('Loading PDB Info...\n');
      if isequal(File1,'uploaded')
-%         Filename1 = [Query.Name '_1'];
         Filename1 = Query.UploadName1;
         File1 = zAddNTData(Filename1,0);
         File1.Filename=Query.UploadName1;
@@ -146,7 +121,7 @@ try
         Filename1 = upper(File1);
         File1 = zAddNTData(Filename1,0);
      end
-   else
+   else %previously processed file was provided
       Filename1 = upper(File1.Filename);
    end
 catch %#ok<CTCH>
@@ -171,7 +146,7 @@ try
          Filename2 = upper(File2);
          File2 = zAddNTData(Filename2,0);
       end
-   else
+   else %previously processed file was provided
       Filename2 = upper(File2.Filename);
    end
 catch %#ok<CTCH>
@@ -259,7 +234,7 @@ else
       load(NeighAFilename);
       AQuads=Quads; %#ok<NODEF>
       clear Quads;
-      c = cat(1,File1.NT(Indices1).Center);           % will need matrix A later
+      c = cat(1,File1.NT(Indices1).Center);           
       try
          File1.Distance = full(zMutualDistance(c,Inf));
       catch %#ok<CTCH>
@@ -267,12 +242,12 @@ else
          [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
          return;
       end
-      A = triu(File1.Distance);
+      A = triu(File1.Distance); % will need matrix A later
    else
+      disp('not loading NeighAFilename')
       maxdist=15;
       getMoreNeigh = true;
       while getMoreNeigh == true;
-         disp('not loading NeighAFilename')
          c = cat(1,File1.NT(Indices1).Center);           % nucleotide centers
          File1.Distance = full(zMutualDistance(c,Inf));  % Distance matrix for A
          A = triu(File1.Distance);                       % Distance matrix is symmetrical;
@@ -307,10 +282,10 @@ else
       File2.Distance = full(zMutualDistance(d,Inf));
       B = triu(File2.Distance);
    else
+      disp('not loading NeighBFilename')
       maxdist=15;
       getMoreNeigh = true;
-      while getMoreNeigh == true;
-         disp('not loading NeighBFilename')
+      while getMoreNeigh == true;   
          d = cat(1,File2.NT(Indices2).Center);           % nucleotide centers
          File2.Distance = full(zMutualDistance(d,Inf));  % Distance matrix for B
          B = triu(File2.Distance);                       % don't want duplicate entries returned in next lines
@@ -335,6 +310,8 @@ else
       end
    end
 
+   %Web server does not allow for seed uploading at this time so following
+   %if block should not be utilized ever.
    if isequal(Query.Type,'web') && ~isequal(Query.SeedName,'')
       FASTA = zReadFASTA(['seed_upload_file' '.fasta']);
       delete(['./SeedAlignments/' Query.Name '.fasta']);
@@ -393,32 +370,34 @@ else
 
 %Files for the sequence alignment are created and moved to the
 %'Sequence Alignments' folder.
-
    if ~isequal(Query.Type,'web') && exist(fullfile(pwd, 'Sequence Alignments',ShortOutFilename)) ~= 7
       I1=Indices1(align1);
       I2=Indices2(align2);
       rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
 
       clf
-      try
-          [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
-      catch
-          fprintf('Bar diagram could not be generated\n');
+      if Query.SeqAlOutputFiles == 1
+         try
+            [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
+         catch
+             fprintf('Bar diagram could not be generated for sequence alignment\n');
+         end
+      
+         View = [1 1 1 1 0 0 0];
+         try
+            m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+            m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+            if m1(4) ~= 0 && m2(3) ~= 0
+               axis([0 20 m2(3) m1(4)])
+            end
+            saveas(gcf,[ShortOutFilename '_int'],'pdf')
+         catch
+            fprintf('Interaction bar diagram could not be generated\n');
+         end
+         rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
+         rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
+         movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
       end
-      View = [1 1 1 1 0 0 0];
-      try
-          m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-          m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-          if m1(1) ~= 0 && m2(1) ~= 0
-             axis([0 20 m2(3) m1(4)])
-          end
-          saveas(gcf,[ShortOutFilename '_int'],'pdf')
-      catch
-          fprintf('Interaction bar diagram could not be generated\n');
-      end
-      rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
-      rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
-      movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
       clear I1 I2;
    end
 
@@ -514,8 +493,6 @@ else
    end
 
    if isempty(VMI)
-%       Query.ErrorMsg='None aligned';
-%       [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
       AlignedIndices1 = [];
       AlignedIndices2 = [];
       Query.Time=toc(tStart);
@@ -654,7 +631,7 @@ if isequal(Query.Type,'web')
       View = [1 1 1 1 0 0 0];
       m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
       m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-      if m1(1) ~= 0 && m2(1) ~= 0
+      if m1(4) ~= 0 && m2(3) ~= 0
          axis([0 20 m2(3) m1(4)])
       end
       saveas(gcf,[Query.Name '_int'],'pdf')
@@ -682,7 +659,7 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    try
        m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
        m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-       if m1(1) ~= 0 && m2(1) ~= 0
+       if m1(4) ~= 0 && m2(3) ~= 0
           axis([0 20 m2(3) m1(4)])
        end
        saveas(gcf,[OutFilename '_int'],'pdf')
@@ -724,21 +701,21 @@ end
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] =IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
    
-   L=length(discCut);
+   L=length(discCut); %number of iterations for the alignment
    Query.currIter = 1; %current Iteration
    if ~exist('seed1') || isempty(seed1)
       [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
    else
       [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2);
    end
-   ct=2;
+   ct=2;  %Just completed first iteration, now starting second
    while ct <= L
-      if ~strcmpi(ErrorMsg,'')
+      if ~strcmpi(ErrorMsg,'') %there is an Error, so stop execution
          break;
       else
          Query.currIter = ct;
          Query.ErrorMsg=ErrorMsg;
-         if ~isempty(AlignedNTs1{1,1})
+         if ~isempty(AlignedNTs1{1,1}) %must check to see if previous alignment aligned any nt's to prevent error of AlignedNTS1 being empty
             [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,AlignedNTs1,AlignedNTs2);
          else
             [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
