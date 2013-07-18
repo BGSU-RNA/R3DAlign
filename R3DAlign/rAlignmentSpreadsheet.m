@@ -2,11 +2,6 @@ function [FinalListing] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,Alig
 
 FinalListing = {};
 
-if ~ispc
-    fprintf('Excel output is only available on the Windows platform\n');
-    return;
-end
-
 if strcmp(ErrorMsg,'Out of Memory')
    FinalListing{1,1}=ErrorMsg;
    xlswrite([pwd filesep SpreadsheetName],FinalListing);
@@ -283,6 +278,9 @@ FinalListing{1,7}='Discrepancy';
 if length(SpreadsheetName) == 13
    SpreadsheetName=[SpreadsheetName '.csv'];
    zWriteCellAsCSV(FinalListing,SpreadsheetName);
+   return;
+elseif ~ispc
+   fprintf('Excel output is only available on the Windows platform\n');
    return;
 else
    try
