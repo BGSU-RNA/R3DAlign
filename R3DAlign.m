@@ -28,10 +28,10 @@ if ~isfield(Query,'LoadFinal')
     Query.LoadFinal = 1;
 end
 if ~isfield(Query,'SeqAlOutputFiles')
-    Query.SeqAlOutputFiles = 1;
+    Query.SeqAlOutputFiles = 0;
 end
 if ~isfield(Query,'OutputFiles')
-    Query.OutputFiles = 1;
+    Query.OutputFiles = 0;
 end
 if ~isfield(Query,'ErrorMsg')
     Query.ErrorMsg = '';
@@ -669,12 +669,10 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
        end
        fprintf('Interaction bar diagram could not be generated\n');
    end
-%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.pdf']), fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
    rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
-%    copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.txt']), fullfile(pwd, 'R3D Align Output', 'Text Alignments'));   
    try
        rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query); 
    catch ME
@@ -688,14 +686,6 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
        VP.Write=1;
        rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
    end
-   %    rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,FL);
-%    if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2
-%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xlsx']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-%    elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2
-%       copyfile(fullfile(pwd,'R3D Align Output',OutFilename,[OutFilename '.xls']), fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-%    else
-%       disp('File not found for rAnalyzeAlignment');
-%    end
 end                  
 end
 

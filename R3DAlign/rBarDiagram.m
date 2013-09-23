@@ -57,7 +57,7 @@ for p=1:numBars
    if length(AlignedNTList1) > 4
       c = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
    elseif length(AlignedNTList1) == 4
-      c = xDiscrepancy(File1,AlignedNTList1,File2,AlignedNTList1);
+      c = xDiscrepancy(File1,AlignedNTList1,File2,AlignedNTList2);
    elseif isempty(AlignedNTList1)
       return;
    end
