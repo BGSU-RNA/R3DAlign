@@ -266,11 +266,11 @@ else
          else
             getMoreNeigh = false;
          end
-         AQuads = rGetQuads(AQuads,A,numNeigh{Query.currIter});
-         Quads=AQuads; 
-         save(NeighAFilename, 'Quads')
-         clear Quads;
       end
+      AQuads = rGetQuads(AQuads,A,numNeigh{Query.currIter});
+      Quads=AQuads; 
+      save(NeighAFilename, 'Quads')
+      clear Quads;
    end
 
    if exist(NeighBFilename)==2
