@@ -201,6 +201,15 @@ for i=1:length(NTList2)
       Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
    end
 end
+if length(Indices1)<4     
+   Query.ErrorMsg='Structure 1 must contain at least four nucleotides.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+   return;
+elseif length(Indices2)<4     
+   Query.ErrorMsg='Structure 2 must contain at least four nucleotides.';
+   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
+   return;
+end
 OutFilename = strrep(OutFilename, ':', '-');
 ShortOutFilename=OutFilename;
 for i=1:Query.currIter
