@@ -14,9 +14,11 @@
 %   set by WebR3DAlign.  If Query.LoadFinal = 1, previous results are used;
 %   if 0, re-processed.
 % seed1 and seed2 are optional seed alignments. They can be ...
+%Examples: R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},.5,8,10,'greedy',Query,Al1,Al2)
+%          R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'},Query);
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
-%
+
 tStart=tic;
 if nargin < 11
     Query.Type = 'local';
@@ -26,6 +28,9 @@ if ~isfield(Query,'Type')
 end
 if ~isfield(Query,'LoadFinal')
     Query.LoadFinal = 1;
+end
+if ~isfield(Query,'SeedName')
+    Query.SeedName = '';
 end
 if ~isfield(Query,'SeqAlOutputFiles')
     Query.SeqAlOutputFiles = 0;
@@ -58,7 +63,7 @@ addpath(genpath([pwd filesep 'FR3D']));
 %Following was commented to be able to direct to specific R3DAlign folder
 %manually
 % addpath([pwd filesep 'R3DAlign']);  
-if ~(exist([pwd filesep 'PDBFiles']) == 7),        % if directory doesn't yet exist
+if ~(exist([pwd filesep 'PDBFiles']) == 7),        %#ok<*EXIST> % if directory doesn't yet exist
    mkdir([pwd filesep 'PDBFiles']);
 end
 addpath([pwd filesep 'PDBFiles']);
@@ -215,6 +220,9 @@ ShortOutFilename=OutFilename;
 for i=1:Query.currIter
    OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
 end
+if ~isempty(Query.SeedName)
+  OutFilename = [OutFilename '_' Query.SeedName];
+end
 OutFilename = strrep(OutFilename, '.', '');
 
 NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
@@ -239,7 +247,7 @@ else
    disp('get neighborhoods')
 
    if exist(NeighAFilename)==2
-      disp('loading NeighAFilename')
+      disp(['loading ' NeighAFilename])
       load(NeighAFilename);
       AQuads=Quads; %#ok<NODEF>
       clear Quads;
@@ -253,7 +261,7 @@ else
       end
       A = triu(File1.Distance); % will need matrix A later
    else
-      disp('not loading NeighAFilename')
+      disp(['not loading ' NeighAFilename])
       maxdist=15;
       getMoreNeigh = true;
       while getMoreNeigh == true;
@@ -283,7 +291,7 @@ else
    end
 
    if exist(NeighBFilename)==2
-      disp('loading NeighBFilename')
+      disp(['loading ' NeighBFilename])
       load(NeighBFilename);
       BQuads=Quads;
       clear Quads;
@@ -291,7 +299,7 @@ else
       File2.Distance = full(zMutualDistance(d,Inf));
       B = triu(File2.Distance);
    else
-      disp('not loading NeighBFilename')
+      disp(['not loading ' NeighBFilename])
       maxdist=15;
       getMoreNeigh = true;
       while getMoreNeigh == true;   
@@ -382,10 +390,10 @@ else
    if ~isequal(Query.Type,'web') && exist(fullfile(pwd, 'Sequence Alignments',ShortOutFilename)) ~= 7
       I1=Indices1(align1);
       I2=Indices2(align2);
-      rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
-
+      
       clf
       if Query.SeqAlOutputFiles == 1
+         rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
          try
             [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
          catch
