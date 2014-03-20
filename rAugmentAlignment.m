@@ -15,6 +15,12 @@ align1 = S1; %#ok<NASGU>
 align2 = align2(IX);
 
 GappedAs=find(align2==0);
+
+if sum(align2) == 0  %This happens when seed alignment did not align any
+   align2=align1;
+   return;
+end
+
 for p=GappedAs
   tmp = 0;
   ct = 0;
