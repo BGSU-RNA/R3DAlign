@@ -64,7 +64,7 @@ if ~isfield(Query,'currIter')
       Query.SeedName = '';
    end
    if ~isfield(Query,'AnchorLength')
-      Query.AnchorLength = 15;
+      Query.AnchorLength = 6;
    end
    if ~isfield(Query,'SeqAlOutputFiles')
       Query.SeqAlOutputFiles = 0;
@@ -79,7 +79,7 @@ if ~isfield(Query,'currIter')
       Query.SaveEmptyAlignment = 0;
    end
    if ~isfield(Query,'PostD')
-      Query.PostD = 100;
+      Query.PostD = 3;
    end   
    
 %    addpath(genpath([pwd filesep 'FR3D']));
