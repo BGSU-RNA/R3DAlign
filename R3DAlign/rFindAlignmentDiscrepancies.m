@@ -24,6 +24,17 @@ if isequal(Method,'nearest4')
       end
    end
    D=Discreps4';
+elseif isequal(Method,'nearest10')
+   Discreps10=zeros(1,length(Indices1));
+   for i=1:length(Indices1)
+      [a b]=sort(D1(i,:));
+      Discreps10(i) = xDiscrepancy(File1,Indices1(b(1:11)),File2,Indices2(b(1:11)));
+      if Discreps10(i)<.2
+          ItoAdd=[Indices1(b(1:11))' Indices2(b(1:11))'];
+          GoodDiscreps=[GoodDiscreps; ItoAdd]; %#ok<AGROW>
+      end
+   end
+   D=Discreps10';
 elseif isequal(Method,'AllQuads')
    A = triu(D1);
    [rA cA] = find(A<10 & A>0);

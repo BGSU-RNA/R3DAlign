@@ -1,5 +1,31 @@
 function [FinalListing] = rAlignmentSpreadsheet(File1,NTList1,File2,NTList2,AlignedNTList1,AlignedNTList2,SpreadsheetName,ErrorMsg)
-
+if nargin == 2 %two arguments --> final alignment .mat file and location to save
+   SaveLocation=NTList1;
+   try
+      load(File1);
+   catch ME
+%       for k=1:length(ME.stack)
+%          ME.identifier
+%          ME.message
+%          ME.stack(k)
+%       end
+      return;
+   end
+   L=regexp(File1,'(');
+   M=regexp(File1,'.mat');
+   if isempty(M)
+      SpreadsheetName = File1(L(1)-4:end);
+   else
+      SpreadsheetName = File1(L(1)-4:M(1)-1);
+   end
+   File2=File1(L(2)-4:L(2)-1);
+   File1=File1(L(1)-4:L(1)-1);
+   NTList1 = Indices1;
+   NTList2 = Indices2;
+   AlignedNTList1 = AlignedIndices1;
+   AlignedNTList2 = AlignedIndices2;
+   ErrorMsg=[];
+end
 FinalListing = {};
 
 if strcmp(ErrorMsg,'Out of Memory')
@@ -275,8 +301,12 @@ FinalListing{1,7}='Discrepancy';
 %4d24dbc864984).  In this case, generate the csv file and return.  Else,
 %the full spreadsheet can be generated.
 
-if length(SpreadsheetName) == 13
-   SpreadsheetName=[SpreadsheetName '.csv'];
+if length(SpreadsheetName) == 13 || nargin == 2
+   if exist('SaveLocation','var')
+      SpreadsheetName=fullfile(SaveLocation,[SpreadsheetName '.csv']);
+   else
+       SpreadsheetName=[SpreadsheetName '.csv'];
+   end
    zWriteCellAsCSV(FinalListing,SpreadsheetName);
    return;
 elseif ~ispc
@@ -384,5 +414,12 @@ else
       delete(fullfile(pwd,[TempExcelName '.xls']));
    else
       delete([TempExcelName '.xls']);
+   end
+   if exist('SaveLocation','var')
+      try
+         movefile([pwd filesep SpreadsheetName '*'], SaveLocation);
+      catch
+          disp('Error moving file');
+      end
    end
 end
