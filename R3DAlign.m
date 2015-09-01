@@ -50,10 +50,10 @@
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
 try
+if ~exist('Query','var')
+   Query.Type = 'local';
+end
 if ~isfield(Query,'currIter')
-   if nargin < 11
-      Query.Type = 'local';
-   end
    if ~isfield(Query,'Type')
       Query.Type = 'local';
    end
@@ -173,8 +173,12 @@ if ~isfield(Query,'currIter')
          end
       end
       OutFilename = strrep(OutFilename, ':', '-');
-      for i=1:length(discCut)
-         OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+      if length(discCut) == 1 && ~isequal(class(discCut),'cell')
+         OutFilename = [OutFilename '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW> 
+      else         
+         for i=1:length(discCut)
+            OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+         end
       end
       if ~isempty(Query.SeedName)
          OutFilename = [OutFilename '_' Query.SeedName];
@@ -206,8 +210,12 @@ if ~isfield(Query,'currIter')
             end
          end
          OutFilename = strrep(OutFilename, ':', '-');
-         for i=1:length(discCut)
-            OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+         if length(discCut) == 1 && ~isequal(class(discCut),'cell')
+            OutFilename = [OutFilename '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW> 
+         else 
+            for i=1:length(discCut)
+               OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+            end
          end
          if ~isempty(Query.SeedName)
             OutFilename = [OutFilename '_' Query.SeedName];
