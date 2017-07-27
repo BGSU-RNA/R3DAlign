@@ -14,8 +14,9 @@
 %   set by WebR3DAlign.  If Query.LoadFinal = 1, previous results are used;
 %   if 0, re-processed.
 % seed1 and seed2 are optional seed alignments. They can be ...
-%Examples: R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},.5,8,10,'greedy',Query,Al1,Al2)
+%Examples: R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},0.5,8,10,'greedy',Query,Al1,Al2)
 %          R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'},Query);
+% [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign('1FJG',{'A'},{'all'},'4KVB',{'A'},{'all'},0.5,8,10,'greedy')
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
 
@@ -62,7 +63,7 @@ end
 addpath(genpath([pwd filesep 'FR3D']));
 %Following was commented to be able to direct to specific R3DAlign folder
 %manually
-% addpath([pwd filesep 'R3DAlign']);  
+% addpath([pwd filesep 'R3DAlign']);
 if ~(exist([pwd filesep 'PDBFiles']) == 7),        %#ok<*EXIST> % if directory doesn't yet exist
    mkdir([pwd filesep 'PDBFiles']);
 end
@@ -206,11 +207,11 @@ for i=1:length(NTList2)
       Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
    end
 end
-if length(Indices1)<4     
+if length(Indices1)<4
    Query.ErrorMsg='Structure 1 must contain at least four nucleotides.';
    [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
-elseif length(Indices2)<4     
+elseif length(Indices2)<4
    Query.ErrorMsg='Structure 2 must contain at least four nucleotides.';
    [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
    return;
@@ -234,7 +235,7 @@ if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat'
    load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']));
 else
    disp('not loading Final Alignment')
-   if numNeigh{Query.currIter} > nchoosek(length(Indices1)-1,3)     
+   if numNeigh{Query.currIter} > nchoosek(length(Indices1)-1,3)
       Query.ErrorMsg='Neighborhood parameter too large based on size of structure 1.';
       [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
       return;
@@ -251,7 +252,7 @@ else
       load(NeighAFilename);
       AQuads=Quads; %#ok<NODEF>
       clear Quads;
-      c = cat(1,File1.NT(Indices1).Center);           
+      c = cat(1,File1.NT(Indices1).Center);
       try
          File1.Distance = full(zMutualDistance(c,Inf));
       catch %#ok<CTCH>
@@ -285,7 +286,7 @@ else
          end
       end
       AQuads = rGetQuads(AQuads,A,numNeigh{Query.currIter});
-      Quads=AQuads; 
+      Quads=AQuads;
       save(NeighAFilename, 'Quads')
       clear Quads;
    end
@@ -302,7 +303,7 @@ else
       disp(['not loading ' NeighBFilename])
       maxdist=15;
       getMoreNeigh = true;
-      while getMoreNeigh == true;   
+      while getMoreNeigh == true;
          d = cat(1,File2.NT(Indices2).Center);           % nucleotide centers
          File2.Distance = full(zMutualDistance(d,Inf));  % Distance matrix for B
          B = triu(File2.Distance);                       % don't want duplicate entries returned in next lines
@@ -390,7 +391,7 @@ else
    if ~isequal(Query.Type,'web') && exist(fullfile(pwd, 'Sequence Alignments',ShortOutFilename)) ~= 7
       I1=Indices1(align1);
       I2=Indices2(align2);
-      
+
       clf
       if Query.SeqAlOutputFiles == 1
          rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
@@ -399,7 +400,7 @@ else
          catch
              fprintf('Bar diagram could not be generated for sequence alignment\n');
          end
-      
+
          View = [1 1 1 1 0 0 0];
          try
             m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
@@ -516,14 +517,14 @@ else
       WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
       return;
    end
-   
+
 try
    [EM]=rMakeEdgeMatrix(VMI,List);
 catch %#ok<CTCH>
   Query.ErrorMsg = ['Edge Matrix Memory Error in Iteration ' num2str(Query.currIter) '.'];
   [AlignedNTs1 AlignedNTs2 ErrorMsg] = HandleError(Query);
   return;
-end  
+end
    clear List;
    clear A;
    clear B;
@@ -601,7 +602,7 @@ end
       AlignedNTs1{i,2}=File1.NT(AlignedIndices1(i)).Chain;
       AlignedNTs1{i,3}=File1.NT(AlignedIndices1(i)).Base;
       AlignedNTs1{i,4}=AlignedIndices1(i);
-      
+
       AlignedNTs2{i,1}=File2.NT(AlignedIndices2(i)).Number;
       AlignedNTs2{i,2}=File2.NT(AlignedIndices2(i)).Chain;
       AlignedNTs2{i,3}=File2.NT(AlignedIndices2(i)).Base;
@@ -652,8 +653,8 @@ if isequal(Query.Type,'web')
          axis([0 20 m2(3) m1(4)])
       end
       saveas(gcf,[Query.Name '_int'],'pdf')
-      saveas(gcf,[Query.Name '_int'],'png')      
-      
+      saveas(gcf,[Query.Name '_int'],'png')
+
       rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
       VP.Write=1;
@@ -691,23 +692,23 @@ elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder doe
    rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
    movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
    try
-       rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query); 
+       rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query);
    catch ME
        for k=1:length(ME.stack)
           ME.stack(k)
        end
        fprintf('Alignment could not be analyzed\n');
    end
-     
+
    if exist('Query', 'var') && isfield(Query, 'Name')
        VP.Write=1;
        rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
    end
-end                  
+end
 end
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] =IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
-   
+
    L=length(discCut); %number of iterations for the alignment
    Query.currIter = 1; %current Iteration
    if ~exist('seed1') || isempty(seed1)
