@@ -1,31 +1,26 @@
-function [SM] = rMakeEdgeMatrix(VMI,List)
+%Major difference in Version 2 is that
+%Len is passed in from R3DAlign.m instead of computed inside.  This is
+%faster.
+
+function [SM] = rMakeEdgeMatrix(VMI,List,Len)
 
 BI1=zeros(500000,1);
 BI2=zeros(500000,1);
-[m n]=size(List);
-Len=zeros(m,n,'uint16');
-for i = 1:m
-   for j = 1:n
-      Len(i,j)=length(List{i,j});
-   end
-end
 
 [i j] = find(Len);
 
 ct=0;
 ct1=0;
-
 for k=1:length(i)-1  
    b = find(logical(i(k+1:end)<=i(k)) & logical(j(k+1:end)>j(k)));
    c = find(logical(i(k+1:end)>i(k)) & logical(j(k+1:end)<=j(k)));
    d = union(b,c);
-   
-   for p=1:length(d)
-      L1=List{i(k),j(k)};
+   L1=List{i(k),j(k)};
+    for p=1:length(d)
       L2=List{i(d(p)+k),j(d(p)+k)};
       ct1=ct1+2*length(L1)*length(L2);
       for r = 1:length(L1)
-         for s = 1:length(L2)
+         for s = 1:length(L2)    
             ct=ct+1;
             len=length(BI1);
             if ct>len
@@ -36,7 +31,7 @@ for k=1:length(i)-1
             BI2(ct)=L2(s);
          end
       end               
-   end
+   end  
 end
 
 clear Len
