@@ -296,15 +296,12 @@ if ~isfield(Query,'currIter')
 %This code is all here to get the indices and determine if structures
 % should be reversed before calling Iterative Align.
    for i=1:length(NTList1)
-      if isequal(Chain1{i},'all')
+      if isequal(Chain1{i},'all')          % all chains
          Indices1=1:File1.NumNT;
-      elseif isequal(NTList1{i},'all')
-         chain=Chain1{i};
-         c=cat(2,File1.NT.Chain);
-      %Only use Model 1
-         Mod=cat(2,File1.NT.ModelNum);
-         tmpIndices = find(lower(c)==lower(chain) & Mod ==1);
-         Indices1 = [Indices1 tmpIndices]; %#ok<AGROW>
+      elseif isequal(NTList1{i},'all')     % all nucleotides in chain(s)
+         chain=Chain1{i};                  % can have multiple chains and multiple NTList's
+         tmpIndices = findChainIndices(File1,chain);
+         Indices1 = [Indices1 tmpIndices];
       else
          if ~isempty(NTList1{i})
             tmpIndices = zIndexLookup(File1,NTList1{i},Chain1{i});
@@ -327,10 +324,8 @@ if ~isfield(Query,'currIter')
          Indices2=1:File2.NumNT;
       elseif isequal(NTList2{i},'all')
          chain=Chain2{i};
-         c=cat(2,File2.NT.Chain);
-         Mod=cat(2,File2.NT.ModelNum);
-         tmpIndices = find(lower(c)==lower(chain) & Mod ==1);
-         Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
+         tmpIndices = findChainIndices(File2,chain);
+         Indices2 = [Indices2 tmpIndices];
       else
          if ~isempty(NTList2{i})
             tmpIndices = zIndexLookup(File2,NTList2{i},Chain2{i});
@@ -476,10 +471,7 @@ for i=1:length(NTList1)
       Indices1=1:File1.NumNT;
    elseif isequal(NTList1{i},'all')
       chain=Chain1{i};
-      c=cat(2,File1.NT.Chain);
-   %Only use Model 1
-      Mod=cat(2,File1.NT.ModelNum);
-      tmpIndices = find(lower(c)==lower(chain) & Mod ==1);
+      tmpIndices = findChainIndices(File1,chain);
       Indices1 = [Indices1 tmpIndices]; %#ok<AGROW>
    else
       if ~isempty(NTList1{i})
@@ -521,9 +513,7 @@ for i=1:length(NTList2)
       Indices2=1:File2.NumNT;
    elseif isequal(NTList2{i},'all')
       chain=Chain2{i};
-      c=cat(2,File2.NT.Chain);
-      Mod=cat(2,File2.NT.ModelNum);
-      tmpIndices = find(lower(c)==lower(chain) & Mod ==1);
+      tmpIndices = findChainIndices(File2,chain);
       Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
    else
       if ~isempty(NTList2{i})
@@ -1093,7 +1083,8 @@ end
    OrigIndices1 = AlignedIndices1;
    c=cat(2,File1.NT(AlignedIndices1).Chain);
    for i=1:length(Chain1)
-      I = find(lower(c)==lower(Chain1{i}));
+      chain = Chain1{i};                       % current chain
+      I = findChainSubsetIndices(File1,chain,AlignedIndices1);
       AlignedIndices1(I) = AlignedIndices1(I)+100000*(i-1);
    end
    [~, ind] = sort(AlignedIndices1);
@@ -1150,6 +1141,31 @@ catch ME
   ErrorMsg = ME.message;
   return;
 end
+end
+
+% ================================== functions =================================
+
+% Find indices of nucleotides whose indices match given chain
+function [tmpIndices] = findChainIndices(File,chain)
+   keep = zeros(1,File.NumNT);      % initially, do not keep any nucleotides
+   for j = 1:File.NumNT             % loop through all indices
+      if isequal(File.NT(j).Chain,chain) && File.NT(j).ModelNum == 1  % only use Model 1
+         keep(j) = 1;
+      end
+   end
+   tmpIndices = find(keep);
+end
+
+% Find indices of nucleotides whose indices match; use a specified Subset
+function [tmpIndices] = findChainSubsetIndices(File,chain,Subset)
+   keep = zeros(1,length(Subset));      % initially, do not keep any nucleotides
+   for j = 1:length(Subset)             % loop through indices of interest
+      jj = Subset(j);
+      if isequal(File.NT(jj).Chain,chain) && File.NT(jj).ModelNum == 1  % only use Model 1
+         keep(j) = 1;                   % mark index of Subset to keep
+      end
+   end
+   tmpIndices = find(keep);
 end
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = HandleError(Query)
