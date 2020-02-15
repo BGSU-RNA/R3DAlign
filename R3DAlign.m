@@ -191,12 +191,15 @@ if ~isfield(Query,'currIter')
          OutFilename = [OutFilename '_' Query.SeedName];
       end
       OutFilename = strrep(OutFilename, '.', '');
+
+      fprintf('Output file folder and name %s\n',OutFilename)
+
       if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files',F1, [OutFilename '.mat']))==2 && Query.LoadFinal==1
          disp('loading Final Alignment')
          load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files',F1, [OutFilename '.mat']));
          return;
       else % Try if switching order of structures finds a file
-         OutFilename = [F2 '('];
+         OutFilename = [F2 '(' Chain2{1}];
          for i=2:length(Chain2)
             OutFilename = [OutFilename '-' Chain2{i}]; %#ok<AGROW>
          end
@@ -206,7 +209,7 @@ if ~isfield(Query,'currIter')
                OutFilename = [OutFilename '(' NTList2{i} ')']; %#ok<AGROW>
             end
          end
-         OutFilename = [OutFilename '--' F1 '('];
+         OutFilename = [OutFilename '--' F1 '(' Chain1{1}];
          for i=2:length(Chain1)
             OutFilename = [OutFilename '-' Chain1{i}]; %#ok<AGROW>
          end
@@ -236,16 +239,18 @@ if ~isfield(Query,'currIter')
       end
    end
 
+   fprintf('Output file folder and name %s\n',OutFilename)
+
    try
       if ischar(File1),
-        fprintf('Loading PDB Info...\n');
         if isequal(File1,'uploaded')
            Filename1 = Query.UploadName1;
            File1 = zAddNTData(Filename1,0);
            File1.Filename=Query.UploadName1;
         else
+           fprintf('Loading 3D structure file %s ...\n',File1);
            Filename1 = upper(File1);
-           File1 = zAddNTData(Filename1,0);
+           File1 = zAddNTData(Filename1);
         end
       else %previously processed file was provided
          Filename1 = upper(File1.Filename);
@@ -265,6 +270,7 @@ if ~isfield(Query,'currIter')
 
    try
       if ischar(File2),
+         fprintf('Loading 3D structure file %s...\n',File2);
          if isequal(File2,'uploaded')
             Filename2 = Query.UploadName2;
             File2 = zAddNTData(Filename2,0);
@@ -787,8 +793,7 @@ else
       D=10*ones(1,length(align1));
    end
 %*************************************
-
- % Augment alignment with near matches
+% Augment alignment with near matches
 % For each nt in A aligned with a gap, the nearest aligned nt in B is found
 % to use as the center of the band for that nt
 %*************************************
@@ -1090,13 +1095,12 @@ end
    AlignedIndices2 = AlignedIndices2(ind);
 
 
-if length(Indnums1)>4
-%       sum(Anchor)
-      D=rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
-      disp(['Number removed via post-processing: ' num2str(sum(D>Query.PostD)) '/' num2str(length(D))]);
-      AlignedIndices1(D>Query.PostD)=[];
-      AlignedIndices2(D>Query.PostD)=[];
-end
+	if length(Indnums1)>4
+	      D=rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
+	      disp(['Number removed via post-processing: ' num2str(sum(D>Query.PostD)) '/' num2str(length(D))]);
+	      AlignedIndices1(D>Query.PostD)=[];
+	      AlignedIndices2(D>Query.PostD)=[];
+	end
 %AlignedNTs contains the nucleotide number, base and chain of each aligned nucleotide
    clear AlignedNTs1;
    clear AlignedNTs2;
@@ -1123,7 +1127,7 @@ if Query.OutputFiles == 1
    fprintf('Producing Alignment Output...\n');
    WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
 end
-% fprintf('Done\n');
+
 catch ME
   ME.identifier
   ME.message
@@ -1207,6 +1211,7 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	       for k=1:length(ME.stack)
 	          ME.stack(k)
 	       end
+	       OutFilename
 	       fprintf('Bar diagram could not be generated\n');
 	   end
 	   View = [1 1 1 1 0 0 0];
