@@ -6,16 +6,17 @@ The algorithm is implemented in a program suite and web server called ‘R3D Ali
 
 # Installation
 
+From the command line.  Skip the first line if FR3D is already installed.
+
+    git clone git@github.com:BGSU-RNA/FR3D.git
     git clone git@github.com:BGSU-RNA/R3DAlign.git
-    cd R3DAlign
-    # initialize FR3D submodule
-    git submodule init
-    git submodule update
 
 # Usage
 
-The main program is _R3DAlign.m_. To launch In Matlab or Octave:
+The main program is _R3DAlign.m_. After starting Matlab or Octave:
 
+    cd FR3D;
+    set_path
     cd R3DAlign;
     addpath(genpath(pwd));
     % test alignment of two 5S rRNAs
@@ -31,5 +32,6 @@ To produce pdb files, use the following commands:
 
 Developed by Ryan Rahrig.
 Transferred to Github by Anton Petrov.
+Updated by Craig Zirbel
 
-Tested on Matlab R2007b and Octave 3.6.3
+Tested on Matlab R2007b, R2019b, and Octave 3.6.3, at various times.  We try to maintain backward compatibility, but it cannot be assured.
