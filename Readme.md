@@ -16,7 +16,7 @@ From the command line.  Skip the first line if FR3D is already installed.
 The main program is _R3DAlign.m_. After starting Matlab or Octave:
 
     cd FR3D;
-    set_path
+    setup_path
     cd R3DAlign;
     addpath(genpath(pwd));
     % test alignment of two 5S rRNAs
