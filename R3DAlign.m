@@ -29,7 +29,7 @@
 % If Query.SaveEmptyAlignment = 1, alignments that do not find any
 % correspondences are saved; if 0, not saved.
 
-%Example 1:
+% Example 1:
 % Query.LoadFinal = 1;
 % Query.Type='local';
 % Query.PostD=3;
@@ -38,7 +38,7 @@
 % Query.SaveEmptyAlignment = 1;
 % R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},.5,8,10,'greedy',Query,Al1,Al2)
 
-%Example 2:
+% Example 2:
 % Query.LoadFinal = 1;
 % Query.Type='local';
 % Query.PostD=3;
@@ -54,10 +54,52 @@
 % 4) uses rMakeEdgeMatrix.m
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
-try
-	if ~exist('Query','var')
-	   Query.Type = 'local';
-end
+
+   if nargin < 10
+      fprintf('R3DAlign needs at least 10 arguments\n');
+      return
+   end
+
+   % make sure FR3D code base is installed
+   if ~strfind('FR3DSource',path),
+      fprintf('Make sure FR3D is installed, change to that directory, and run setup_path.m\n');
+   end
+
+   % make local directories for R3D Align to store files
+   if ~(exist([pwd filesep 'PDBFiles']) == 7),        %#ok<*EXIST> % if directory doesn't yet exist
+      mkdir([pwd filesep 'PDBFiles']);
+   end
+   if ~(exist([pwd filesep 'PrecomputedData']) == 7),        % if directory doesn't yet exist
+      mkdir([pwd filesep 'PrecomputedData']);
+   end
+   if ~(exist([pwd filesep 'Neighborhoods']) == 7),        % if directory doesn't yet exist
+      mkdir([pwd filesep 'Neighborhoods']);
+   end
+   if ~(exist([pwd filesep 'Sequence Alignments']) == 7),        % if directory doesn't yet exist
+      mkdir([pwd filesep 'Sequence Alignments']);
+   end
+   if ~(exist([pwd filesep 'R3D Align Output']) == 7),        % if directory doesn't yet exist
+      mkdir([pwd filesep 'R3D Align Output']);
+   end
+   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Final Mat Files')) == 7),        % if directory doesn't yet exist
+      mkdir(fullfile(pwd, 'R3D Align Output', 'Final Mat Files'));
+   end
+   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets')) == 7),        % if directory doesn't yet exist
+      mkdir(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets'));
+   end
+
+   % add local directories to the path to facilitate calling programs and loading data files
+   addpath([pwd filesep 'R3DAlign']);           % this is the code subdirectory of R3DAlign
+   addpath([pwd filesep 'PDBFiles']);
+   addpath([pwd filesep 'PrecomputedData']);
+
+   try
+   	if ~exist('Query','var')
+   	   Query.Type = 'local';
+   end
+
+% Set up many variables for the alignment
+% If this is the second or higher iteration of iterative alignment, skip this
 if ~isfield(Query,'currIter')
    if ~isfield(Query,'Type')
       Query.Type = 'local';
@@ -87,57 +129,6 @@ if ~isfield(Query,'currIter')
       Query.PostD = 3;
    end
 
-% Next line
-%    addpath(genpath([pwd filesep 'FR3D']));
-
-
-   addpath([pwd filesep 'R3DAlign']);
-
-   if ~(exist([pwd filesep 'PDBFiles']) == 7),        %#ok<*EXIST> % if directory doesn't yet exist
-      mkdir([pwd filesep 'PDBFiles']);
-   end
-%    addpath([pwd filesep 'PDBFiles']);
-   if ~(exist([pwd filesep 'PrecomputedData']) == 7),        % if directory doesn't yet exist
-      mkdir([pwd filesep 'PrecomputedData']);
-   end
-%    addpath([pwd filesep 'PrecomputedData']);
-   if ~(exist([pwd filesep 'Neighborhoods']) == 7),        % if directory doesn't yet exist
-      mkdir([pwd filesep 'Neighborhoods']);
-   end
-   if ~(exist([pwd filesep 'Sequence Alignments']) == 7),        % if directory doesn't yet exist
-      mkdir([pwd filesep 'Sequence Alignments']);
-   end
-   if ~(exist([pwd filesep 'R3D Align Output']) == 7),        % if directory doesn't yet exist
-      mkdir([pwd filesep 'R3D Align Output']);
-   end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams')) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
-   end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Spreadsheets')) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-   end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Text Alignments')) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Text Alignments'));
-   end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Final Mat Files')) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Final Mat Files'));
-   end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets')) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets'));
-   end
-   if nargin < 5
-      discCut{Query.currIter} = input('Enter the discrepancy cutoff value: ');
-   end
-   if nargin < 6
-      numNeigh{Query.currIter} = input('Enter the number of neighborhoods for each nucleotide: ');
-   end
-   if nargin < 7
-      bandwidth{Query.currIter} = input('Enter the bandwidth for the seed alignment: ');
-   end
-   if nargin < 8
-      cliqueMethod{Query.currIter} = input('Enter final clique method (Full or Greedy): ','s');
-   end
-
    ErrorMsg='';
    AlignedNTs1=cell(2);
    AlignedNTs2=cell(2);
@@ -158,94 +149,61 @@ if ~isfield(Query,'currIter')
          F2 = upper(File2);
       end
 
-      OutFilename = [F1 '(' Chain1{1}];
-      for i=2:length(Chain1)
-         OutFilename = [OutFilename '-' Chain1{i}]; %#ok<AGROW>
-      end
-      OutFilename = [OutFilename ')'];
-
-      for i=1:length(NTList1)
-         if ~isequal(NTList1{i},'all')
-            OutFilename = [OutFilename '(' NTList1{i} ')']; %#ok<AGROW>
-         end
-      end
-      OutFilename = [OutFilename '--' F2 '(' Chain2{1}];
-      for i=2:length(Chain2)
-         OutFilename = [OutFilename '-' Chain2{i}]; %#ok<AGROW>
-      end
-      OutFilename = [OutFilename ')'];
-      for i=1:length(NTList2)
-         if ~isequal(NTList2{i},'all')
-            OutFilename = [OutFilename '(' NTList2{i} ')']; %#ok<AGROW>
-         end
-      end
-      OutFilename = strrep(OutFilename, ':', '-');
+      File1String = MakeFileString(F1,Chain1,NTList1);
+      File2String = MakeFileString(F2,Chain2,NTList2);
+      ParamString = '';
       if length(discCut) == 1 && ~isequal(class(discCut),'cell')
-         OutFilename = [OutFilename '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW>
+         ParamString = [ParamString '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW>
       else
          for i=1:length(discCut)
-            OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+            ParamString = [ParamString '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
          end
       end
       if ~isempty(Query.SeedName)
-         OutFilename = [OutFilename '_' Query.SeedName];
+         ParamString = [ParamString '_' Query.SeedName];
       end
+
+      OutFilename = [File2String '--' File1String ParamString];
+      OutFilename = strrep(OutFilename, ':', '-');
       OutFilename = strrep(OutFilename, '.', '');
+      Query.OutFilename = OutFilename;
 
-      fprintf('Output file folder and name %s\n',OutFilename)
+      fprintf('First OutFilename %s\n',OutFilename);
 
-      if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files',F1, [OutFilename '.mat']))==2 && Query.LoadFinal==1
-         disp('loading Final Alignment')
-         load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files',F1, [OutFilename '.mat']));
+      FinalAlignmentFileName = fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename '.mat']);
+      if exist(FinalAlignmentFileName)==2 && Query.LoadFinal==1
+         fprintf('Output file folder %s\n',OutFilename)
+         disp(['Loading Final Alignment, file ' FinalAlignmentFileName])
+         load(FinalAlignmentFileName);
          return;
-      else % Try if switching order of structures finds a file
-         OutFilename = [F2 '(' Chain2{1}];
-         for i=2:length(Chain2)
-            OutFilename = [OutFilename '-' Chain2{i}]; %#ok<AGROW>
-         end
-            OutFilename = [OutFilename ')'];
-         for i=1:length(NTList2)
-            if ~isequal(NTList2{i},'all')
-               OutFilename = [OutFilename '(' NTList2{i} ')']; %#ok<AGROW>
-            end
-         end
-         OutFilename = [OutFilename '--' F1 '(' Chain1{1}];
-         for i=2:length(Chain1)
-            OutFilename = [OutFilename '-' Chain1{i}]; %#ok<AGROW>
-         end
-         OutFilename = [OutFilename ')'];
-         for i=1:length(NTList1)
-            if ~isequal(NTList1{i},'all')
-               OutFilename = [OutFilename '(' NTList1{i} ')']; %#ok<AGROW>
-            end
-         end
-         OutFilename = strrep(OutFilename, ':', '-');
-         if length(discCut) == 1 && ~isequal(class(discCut),'cell')
-            OutFilename = [OutFilename '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW>
-         else
-            for i=1:length(discCut)
-               OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
-            end
-         end
-         if ~isempty(Query.SeedName)
-            OutFilename = [OutFilename '_' Query.SeedName];
-         end
-         OutFilename = strrep(OutFilename, '.', '');
-         if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files',F2, [OutFilename '.mat']))==2 && Query.LoadFinal==1
-            disp('loading Final Alignment after switching structures')
-            load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files',F2, [OutFilename '.mat']));
+      else            % see if switching order of structures finds a file
+         OutFilename2 = [File2String '--' File1String ParamString];
+         OutFilename2 = strrep(OutFilename2, ':', '-');
+         OutFilename2 = strrep(OutFilename2, '.', '');
+
+         fprintf('Second OutFilename %s\n',OutFilename2);
+
+         FinalAlignmentFileName = fullfile(pwd, 'R3D Align Output','Final Mat Files', [OutFilename2 '.mat']);
+         if exist(FinalAlignmentFileName)==2 && Query.LoadFinal==1
+            fprintf('Switching order of structures\n')
+            fprintf('Output file folder %s\n',OutFilename2)
+            disp(['Loading Final Alignment, file ' FinalAlignmentFileName])
+            load(FinalAlignmentFileName);
             return;
          end
       end
    end
 
-   fprintf('Output file folder and name %s\n',OutFilename)
+   % at this point, no existing final alignment was found, so make an alignment
 
+   fprintf('Output file folder %s\n',OutFilename)
+
+   % load 3D coordinate data
    try
       if ischar(File1),
         if isequal(File1,'uploaded')
            Filename1 = Query.UploadName1;
-           File1 = zAddNTData(Filename1,0);
+           File1 = zAddNTData(Filename1);
            File1.Filename=Query.UploadName1;
         else
            fprintf('Loading 3D structure file %s ...\n',File1);
@@ -270,14 +228,14 @@ if ~isfield(Query,'currIter')
 
    try
       if ischar(File2),
-         fprintf('Loading 3D structure file %s...\n',File2);
+         fprintf('Loading 3D structure file %s ...\n',File2);
          if isequal(File2,'uploaded')
             Filename2 = Query.UploadName2;
-            File2 = zAddNTData(Filename2,0);
+            File2 = zAddNTData(Filename2);
             File2.Filename=Query.UploadName2;
          else
             Filename2 = upper(File2);
-            File2 = zAddNTData(Filename2,0);
+            File2 = zAddNTData(Filename2);
          end
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
@@ -295,17 +253,17 @@ if ~isfield(Query,'currIter')
       return;
    end
 
+   % identify indices of nucleotides from each structure to align
+
    Indices1=[];
    Indices2=[];
-%This code is all here to get the indices and determine if structures
-% should be reversed before calling Iterative Align.
-   for i=1:length(NTList1)
+
+   for i=1:length(NTList1)                 % NTList1 may have several components
       if isequal(Chain1{i},'all')          % all chains
          Indices1=1:File1.NumNT;
       elseif isequal(NTList1{i},'all')     % all nucleotides in chain(s)
-         chain=Chain1{i};                  % can have multiple chains and multiple NTList's
-         tmpIndices = findChainIndices(File1,chain);
-         Indices1 = [Indices1 tmpIndices];
+         chain=Chain1{i};                  % can have multiple chains and multiple NTLists
+         Indices1 = [Indices1 findChainIndices(File1,chain)];
       else
          if ~isempty(NTList1{i})
             tmpIndices = zIndexLookup(File1,NTList1{i},Chain1{i});
@@ -322,14 +280,14 @@ if ~isfield(Query,'currIter')
          end
       end
    end
+   Query.Indices1 = Indices1;
 
    for i=1:length(NTList2)
       if isequal(Chain2{i},'all')
          Indices2=1:File2.NumNT;
       elseif isequal(NTList2{i},'all')
          chain=Chain2{i};
-         tmpIndices = findChainIndices(File2,chain);
-         Indices2 = [Indices2 tmpIndices];
+         Indices2 = [Indices2 findChainIndices(File2,chain)];
       else
          if ~isempty(NTList2{i})
             tmpIndices = zIndexLookup(File2,NTList2{i},Chain2{i});
@@ -346,7 +304,9 @@ if ~isfield(Query,'currIter')
          end
       end
    end
+   Query.Indices2 = Indices2;
 
+   % check that there are enough nucleotides in each structure to make an alignment
    if length(Indices1)<4
       Query.ErrorMsg='Structure 1 must contain at least four nucleotides.';
       [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
@@ -357,8 +317,9 @@ if ~isfield(Query,'currIter')
       return;
    end
 
-%7/8/2014 Smaller structure always first - faster and better seed alignment
-%augmentation.  Example of benefit: 1n36A vs. 1sloA
+   % determine if structures should be reversed before calling Iterative Align
+   % 7/8/2014 Smaller structure always first - faster and better seed alignment
+   % augmentation.  Example of benefit: 1n36A vs. 1sloA
    if length(Indices1) > length(Indices2)
       temp = File2;
       File2 = File1;
@@ -375,7 +336,9 @@ if ~isfield(Query,'currIter')
       temp = Indices2;
       Indices2 = Indices1;
       Indices1 = temp;
-%       if exist('seed1') || ~isempty(seed1)
+      Query.Indices1 = Indices1;
+      Query.Indices2 = Indices2;
+      Query.OutFilename = OutFilename2;
       if exist('seed1')
          temp = seed2;
          seed2 = seed1;
@@ -383,12 +346,15 @@ if ~isfield(Query,'currIter')
       end
    end
 
+   % Check if the user has requested multiple rounds of alignment
+   % If so, call a separate function to do that
    if iscell(discCut)
       if ~exist('seed1') || isempty(seed1)
          [AlignedNTs1,AlignedNTs2,ErrorMsg] = IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
       else
          [AlignedNTs1,AlignedNTs2,ErrorMsg] = IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2);
       end
+      fprintf('Finished iterative alignment\n');
       return;
    else  %there will be only one iteration and convert variables into cell format
       Query.currIter = 1; %Iteration Number
@@ -397,198 +363,61 @@ if ~isfield(Query,'currIter')
       bandwidth={bandwidth};
       cliqueMethod={cliqueMethod};
    end
-end
+end     % if not isquery current iter
 
-addpath(genpath([pwd filesep 'FR3D']));
-%Following was commented to be able to direct to specific R3DAlign folder
-%manually
-% addpath([pwd filesep 'R3DAlign']);
-if ~(exist([pwd filesep 'PDBFiles']) == 7),        %#ok<*EXIST> % if directory doesn't yet exist
-   mkdir([pwd filesep 'PDBFiles']);
-end
-addpath([pwd filesep 'PDBFiles']);
-if ~(exist([pwd filesep 'PrecomputedData']) == 7),        % if directory doesn't yet exist
-   mkdir([pwd filesep 'PrecomputedData']);
-end
-addpath([pwd filesep 'PrecomputedData']);
-if ~(exist([pwd filesep 'Neighborhoods']) == 7),        % if directory doesn't yet exist
-   mkdir([pwd filesep 'Neighborhoods']);
-end
-if ~(exist([pwd filesep 'Sequence Alignments']) == 7),        % if directory doesn't yet exist
-   mkdir([pwd filesep 'Sequence Alignments']);
-end
-if ~(exist([pwd filesep 'R3D Align Output']) == 7),        % if directory doesn't yet exist
-   mkdir([pwd filesep 'R3D Align Output']);
-end
-if ~(exist(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams')) == 7),        % if directory doesn't yet exist
-   mkdir(fullfile(pwd, 'R3D Align Output', 'Bar Diagrams'));
-end
-if ~(exist(fullfile(pwd, 'R3D Align Output', 'Spreadsheets')) == 7),        % if directory doesn't yet exist
-   mkdir(fullfile(pwd, 'R3D Align Output', 'Spreadsheets'));
-end
-if ~(exist(fullfile(pwd, 'R3D Align Output', 'Text Alignments')) == 7),        % if directory doesn't yet exist
-   mkdir(fullfile(pwd, 'R3D Align Output', 'Text Alignments'));
-end
-if ~(exist(fullfile(pwd, 'R3D Align Output', 'Final Mat Files')) == 7),        % if directory doesn't yet exist
-   mkdir(fullfile(pwd, 'R3D Align Output', 'Final Mat Files'));
-end
-if ~(exist(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets')) == 7),        % if directory doesn't yet exist
-   mkdir(fullfile(pwd, 'R3D Align Output', 'Summary Spreadsheets'));
-end
-if nargin < 5
-   discCut{Query.currIter} = input('Enter the discrepancy cutoff value: ');
-end
-if nargin < 6
-   numNeigh{Query.currIter} = input('Enter the number of neighborhoods for each nucleotide: ');
-end
-if nargin < 7
-   bandwidth{Query.currIter} = input('Enter the bandwidth for the seed alignment: ');
-end
-if nargin < 8
-   cliqueMethod{Query.currIter} = input('Enter final clique method (Full or Greedy): ','s');
-end
-
-Indices1=[];
-Indices2=[];
+% =======================================================================
+% Start making the alignment
+% =======================================================================
 
 ErrorMsg='';
 AlignedNTs1=cell(2);
 AlignedNTs2=cell(2);
 NTList{1}=NTList1;
 NTList{2}=NTList2;
-OutFilename = [Query.Filename1 '(' Chain1{1}];
-NeighAFilename = ['Neighborhoods' filesep Query.Filename1 '(' Chain1{1}];
 
-for i=2:length(Chain1)
-   OutFilename = [OutFilename '-' Chain1{i}]; %#ok<AGROW>
-   NeighAFilename = [NeighAFilename '-' Chain1{i}]; %#ok<AGROW>
-end
-OutFilename = [OutFilename ')'];
-NeighAFilename = [NeighAFilename ')'];
+OutFilename = Query.OutFilename;
+ShortOutFilename=OutFilename;
 
-for i=1:length(NTList1)
-   if ~isequal(NTList1{i},'all')
-      OutFilename = [OutFilename '(' NTList1{i} ')']; %#ok<AGROW>
-      NeighAFilename = [NeighAFilename '(' NTList1{i} ')']; %#ok<AGROW>
-   end
-   if isequal(Chain1{i},'all')
-      Indices1=1:File1.NumNT;
-   elseif isequal(NTList1{i},'all')
-      chain=Chain1{i};
-      tmpIndices = findChainIndices(File1,chain);
-      Indices1 = [Indices1 tmpIndices]; %#ok<AGROW>
-   else
-      if ~isempty(NTList1{i})
-         tmpIndices = zIndexLookup(File1,NTList1{i},Chain1{i});
-      else
-         Query.ErrorMsg='No nucleotide numbers specified for Structure 1.';
-         [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
-         return
-      end
-      Indices1 = [Indices1 tmpIndices]; %#ok<AGROW>
-      if isempty(Indices1)
-        Query.ErrorMsg='Invalid nucleotide numbers specified for Structure 1.';
-        [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
-        return;
-      end
-   end
-end
-NeighAFilename = [NeighAFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
-NeighAFilename = strrep(NeighAFilename, ':', '-');
-NeighAFilename = [pwd filesep NeighAFilename];
+Indices1 = Query.Indices1;
+Indices2 = Query.Indices2;
 
-OutFilename = [OutFilename '--' Query.Filename2 '(' Chain2{1}];
-NeighBFilename = ['Neighborhoods' filesep Query.Filename2 '(' Chain2{1}];
-
-
-for i=2:length(Chain2)
-   OutFilename = [OutFilename '-' Chain2{i}]; %#ok<AGROW>
-   NeighBFilename = [NeighBFilename '-' Chain2{i}]; %#ok<AGROW>
-end
-OutFilename = [OutFilename ')'];
-NeighBFilename = [NeighBFilename ')'];
-
-for i=1:length(NTList2)
-   if ~isequal(NTList2{i},'all')
-      OutFilename = [OutFilename NTList2{i}]; %#ok<AGROW>
-      NeighBFilename = [NeighBFilename NTList2{i}]; %#ok<AGROW>
-   end
-   if isequal(Chain2{i},'all')
-      Indices2=1:File2.NumNT;
-   elseif isequal(NTList2{i},'all')
-      chain=Chain2{i};
-      tmpIndices = findChainIndices(File2,chain);
-      Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
-   else
-      if ~isempty(NTList2{i})
-         tmpIndices = zIndexLookup(File2,NTList2{i},Chain2{i});
-      else
-         Query.ErrorMsg='No nucleotide numbers specified for Structure 2.';
-         [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
-         return
-      end
-      Indices2 = [Indices2 tmpIndices]; %#ok<AGROW>
-      if isempty(Indices2)
-        Query.ErrorMsg='Invalid nucleotide numbers specified for Structure 2.';
-        [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
-        return;
-      end
-   end
-end
-if length(Indices1)<4
+if length(Indices1) < 4
    Query.ErrorMsg='Structure 1 must contain at least four nucleotides.';
    [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
    return;
-elseif length(Indices2)<4
+elseif length(Indices2) < 4
    Query.ErrorMsg='Structure 2 must contain at least four nucleotides.';
    [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
    return;
 end
-OutFilename = strrep(OutFilename, ':', '-');
-ShortOutFilename=OutFilename;
-for i=1:Query.currIter
+
+NeighAFilename = [MakeFileString(Query.Filename1,Chain1,NTList1) '_' num2str(numNeigh{Query.currIter}) '.mat'];
+NeighAFilename = strrep(NeighAFilename, ':', '-');
+NeighAFilename = [pwd filesep 'Neighborhoods' filesep NeighAFilename];
+
+NeighBFilename = [MakeFileString(Query.Filename2,Chain2,NTList2) '_' num2str(numNeigh{Query.currIter}) '.mat'];
+NeighBFilename = strrep(NeighBFilename, ':', '-');
+NeighBFilename = [pwd filesep 'Neighborhoods' filesep NeighBFilename];
+
+% OutFilename gets longer with each additional iteration
+for i=2:Query.currIter
    OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
 end
+
 if ~isempty(Query.SeedName)
   OutFilename = [OutFilename '_' Query.SeedName];
 end
+
 OutFilename = strrep(OutFilename, '.', '');
 
-NeighBFilename = [NeighBFilename '_' num2str(numNeigh{Query.currIter}) '.mat'];
-NeighBFilename = strrep(NeighBFilename, ':', '-');
-NeighBFilename = [pwd filesep NeighBFilename];
+% This used to include the PDB ID of the first file as a folder, does not help
+FinalAlignmentFileName = fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']);
 
-%7/8/2014 Smaller structure always first - faster and better seed alignment
-%augmentation.  Example of benefit: 1n36A vs. 1sloA
-
-% if length(Indices1) > length(Indices2)
-%    temp = NeighBFilename;
-%    NeighBFilename = NeighAFilename;
-%    NeighAFilename = temp;
-%    temp = File2;
-%    File2 = File1;
-%    File1 = temp;
-%    temp = Chain2;
-%    Chain2 = Chain1;
-%    Chain1 = temp;
-%    temp = NTList2;
-%    NTList2 = NTList1;
-%    NTList1 = temp;
-%    temp = Indices2;
-%    Indices2 = Indices1;
-%    Indices1 = temp;
-%    if exist('seed1') || ~isempty(seed1)
-%       temp = seed2;
-%       seed2 = seed1;
-%       seed1 = temp;
-%    end
-% end
-
-if exist(fullfile(pwd, 'R3D Align Output','Final Mat Files', Query.Filename1, [OutFilename '.mat']))==2 && Query.LoadFinal==1
-   disp('loading Final Alignment')
-   load(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', Query.Filename1, [OutFilename '.mat']));
+if exist(FinalAlignmentFileName) == 2 && Query.LoadFinal==1
+   disp(['Loading Final Alignment, file ' FinalAlignmentFileName])
+   load(FinalAlignmentFileName);
 else
-   disp('not loading Final Alignment')
+   disp('Creating Alignment')
    if numNeigh{Query.currIter} > nchoosek(length(Indices1)-1,3)
       Query.ErrorMsg='Neighborhood parameter too large based on size of structure 1.';
       [AlignedNTs1, AlignedNTs2, ErrorMsg] = HandleError(Query);
@@ -599,10 +428,8 @@ else
       return;
    end
 
-   disp('get neighborhoods')
-
    if exist(NeighAFilename)==2
-      disp(['loading ' NeighAFilename])
+      disp(['Loading ' NeighAFilename])
       load(NeighAFilename);
       AQuads=Quads; %#ok<NODEF>
       clear Quads;
@@ -616,7 +443,7 @@ else
       end
       A = triu(File1.Distance); % will need matrix A later
    else
-      disp(['not loading ' NeighAFilename])
+      disp(['Creating ' NeighAFilename])
       maxdist=15;
       getMoreNeigh = true;
       while getMoreNeigh == true;
@@ -646,7 +473,7 @@ else
    end
 
    if exist(NeighBFilename)==2
-      disp(['loading ' NeighBFilename])
+      disp(['Loading ' NeighBFilename])
       load(NeighBFilename);
       BQuads=Quads;
       clear Quads;
@@ -654,7 +481,7 @@ else
       File2.Distance = full(zMutualDistance(d,Inf));
       B = triu(File2.Distance);
    else
-      disp(['not loading ' NeighBFilename])
+      disp(['Creating ' NeighBFilename])
       maxdist=15;
       getMoreNeigh = true;
       while getMoreNeigh == true;
@@ -719,10 +546,10 @@ else
       end
    elseif ~exist('seed1') || isempty(seed1)
       if exist(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']))==2
-         disp('loading Sequence Alignment')
+         disp('Loading Sequence Alignment')
          load(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']));
       else
-         disp('not loading Sequence Alignment')
+         disp('Creating Sequence Alignment')
          [align1, align2, charAlign1, charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,7,0.25); %#ok<NASGU,ASGLU>
          save(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']), 'align1', 'align2', 'charAlign1', 'charAlign2')
       end
@@ -792,6 +619,7 @@ else
    else
       D=10*ones(1,length(align1));
    end
+
 %*************************************
 % Augment alignment with near matches
 % For each nt in A aligned with a gap, the nearest aligned nt in B is found
@@ -811,7 +639,7 @@ else
    currMax = max(R);
    while currMax > Query.AnchorLength
        loc=find(R==currMax);
-       Anchor(loc-(currMax-2):loc-1) = 0;  %Assign anchor designations, but not to end boundary nt's
+       Anchor(loc-(currMax-2):loc-1) = 0;  %Assign anchor designations, but not to end boundary nts
        R(loc-(currMax-1):loc) = 0;
        currMax = max(R);
    end
@@ -836,7 +664,7 @@ else
          RB(i)=align2(i);
       end
    end
-   disp(['Number of Anchor Points:' num2str(sum(Anchor==0)) '/' num2str(length(Anchor))]);
+   disp(['Number of Anchor Points: ' num2str(sum(Anchor==0)) '/' num2str(length(Anchor))]);
 
    SA=round(bandwidth{Query.currIter}/2);
    LBtmp=align2-SA;
@@ -963,7 +791,7 @@ T=intersect(intersect(T1,T2),intersect(T3,T4));
          WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
       end
       if Query.SaveEmptyAlignment == 1
-         save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', Query.Filename1, [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
+         save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
       end
       return;
    end
@@ -1038,7 +866,8 @@ for i = 1:length(Segments(:,1))
       EM(D,:)=[];
       EM(:,D)=[];
    end
-%    fprintf('Finding Clique...\n');
+
+%   fprintf('Finding Clique...\n');
 
    if strcmpi(cliqueMethod{Query.currIter},'full')
       MC = rCliqueBB(EM);
@@ -1117,18 +946,18 @@ end
       AlignedNTs2{i,3}=File2.NT(AlignedIndices2(i)).Base;
       AlignedNTs2{i,4}=AlignedIndices2(i);
    end
-   if ~(exist(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', Query.Filename1)) == 7),        % if directory doesn't yet exist
-      mkdir(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', Query.Filename1));
-   end
-   save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', Query.Filename1, [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
+   save(fullfile(pwd, 'R3D Align Output', 'Final Mat Files', [OutFilename '.mat']),'Indices1','Indices2','AlignedIndices1','AlignedIndices2','AlignedNTs1','AlignedNTs2');
 end
 
 if Query.OutputFiles == 1
-   fprintf('Producing Alignment Output...\n');
+   fprintf('Producing Alignment Output ...\n');
    WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
+   fprintf('Finished writing output\n');
 end
 
+% the following catch statement does not seem to have a matching try
 catch ME
+  fprintf('Miscellaneous error\n');
   ME.identifier
   ME.message
   if (strcmp(ME.identifier,'MATLAB:nomem'))
@@ -1145,7 +974,24 @@ catch ME
 end
 end
 
-% ================================== functions =================================
+% ================================== additional functions =================================
+
+% Use data about a file to make a string for the filename
+function [FString] = MakeFileString(F,Chain,NTList)
+
+   FString = [F '(' Chain{1}];
+   for i=2:length(Chain)
+      FString = [FString '-' Chain{i}]; %#ok<AGROW>
+   end
+   FString = [FString ')'];
+
+   for i=1:length(NTList)
+      if ~isequal(NTList{i},'all')
+         FString = [FString '(' NTList{i} ')']; %#ok<AGROW>
+      end
+   end
+end
+
 
 % Find indices of nucleotides whose indices match given chain
 function [tmpIndices] = findChainIndices(File,chain)
@@ -1181,6 +1027,7 @@ function [AlignedNTs1,AlignedNTs2,ErrorMsg] = HandleError(Query)
    end
 end
 
+% Produce several different kinds of output
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
 	if isequal(Query.Type,'web')
 	   if strcmp(ErrorMsg,'')
@@ -1203,9 +1050,19 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	      rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
 	      save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
 	   end
-	elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename)) ~= 7 %if folder does not exist
+	else
+      OutDirectory = fullfile(pwd, 'R3D Align Output', OutFilename);
+
+      if exist(OutDirectory) ~= 7 %if folder does not exist
+         mkdir(OutDirectory)
+      end
+
 	   clf
+
+%      fprintf('WriteOutput: OutFilename %s\n',OutFilename);
+
 	   try
+          OutFilename = fullfile(OutDirectory, 'BarDiagram');
 	       [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
 	   catch ME
 	       for k=1:length(ME.stack)
@@ -1214,31 +1071,24 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	       OutFilename
 	       fprintf('Bar diagram could not be generated\n');
 	   end
-	   View = [1 1 1 1 0 0 0];
-	   try
-	       m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-	       m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-	       if m1(4) ~= 0 && m2(3) ~= 0
-	          axis([0 20 m2(3) m1(4)])
-	       end
-	       saveas(gcf,[OutFilename '_int'],'pdf')
-	   catch ME
-	       for k=1:length(ME.stack)
-	          ME.stack(k)
-	       end
-	       fprintf('Interaction bar diagram could not be generated\n');
-	   end
+
+      OutFilename = fullfile(OutDirectory, 'Alignment');
 	   rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
+      OutFilename = fullfile(OutDirectory, 'AlignmentSpreadsheet');
 	   FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
+      OutFilename = fullfile(OutDirectory, 'AlignmentMatrix');
 	   rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
-	   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
+
+%	   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
+
 	   try
-	       rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query);
+         OutFilename = fullfile(OutDirectory, 'AlignmentSpreadsheet');
+         rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query);
 	   catch ME
-	       for k=1:length(ME.stack)
-	          ME.stack(k)
-	       end
-	       fprintf('Alignment could not be analyzed\n');
+	      for k=1:length(ME.stack)
+	         ME.stack(k)
+	      end
+	      fprintf('Alignment could not be analyzed\n');
 	   end
 
 	   if exist('Query', 'var') && isfield(Query, 'Name')
@@ -1248,10 +1098,12 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	end
 end
 
+% This function runs R3DAlign repeatedly, for iterative alignment
+% The first alignment can be approximate, then second alignment more precise, etc.
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] =IterativeAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
 
-   L=length(discCut); %number of iterations for the alignment
-   Query.currIter = 1; %current Iteration
+   L=length(discCut);  % number of iterations for the alignment
+   Query.currIter = 1; % current Iteration
    if ~exist('seed1') || isempty(seed1)
       [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query);
    else
