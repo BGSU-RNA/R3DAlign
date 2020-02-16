@@ -16,11 +16,13 @@ From the command line.  Skip the first line if FR3D is already installed.
 The main program is _R3DAlign.m_. After starting Matlab or Octave:
 
     cd FR3D;
-    setup_path
+    addpath FR3DSource PrecomputedData PDBFiles SearchSaveFiles;
     cd R3DAlign;
     addpath(genpath(pwd));
     % test alignment of two 5S rRNAs
     [a1,a2] = R3DAlign('2AW4',{'A'},{'all'},'2J01',{'B'},{'all'},0.5,9,50,'greedy');
+
+Alternatively, manually set the Matlab path to include the FR3D folders listed above.  This will allow R3D Align to use binary .mat files for structures already downloaded and annoted by FR3D.  However, any new .mat files will be stored in the R3DAlign folder, not back in the FR3D folder.
 
 To produce pdb files, use the following commands:
 
