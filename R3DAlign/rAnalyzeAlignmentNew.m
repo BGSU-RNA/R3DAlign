@@ -1,21 +1,26 @@
 % This file has been adopted from EvalConsensus.m and
 % zCompare16SAlignments;
-% Evaluate the number of near basepairs aligned with true basepairs, near with near, 
+% Evaluate the number of near basepairs aligned with true basepairs, near with near,
 % true with true, etc.  Evaluate # of conserved nested cWW, non-nested,
 % etc.  Evaluate # of nt's aligned, # of base matches.
+
 function [T] = rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query)
-if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned') 
-   if exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx'])) == 2 %#ok<EXIST>
-      SpreadsheetName = fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xlsx']);
-   elseif exist(fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls'])) == 2 %#ok<EXIST>
-      SpreadsheetName = fullfile(pwd, 'R3D Align Output', OutFilename, [OutFilename '.xls']);
+
+if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
+   if exist([OutFilename '.xlsx']) == 2 %#ok<EXIST>
+      SpreadsheetName = [OutFilename '.xlsx'];
+   elseif exist([OutFilename '.xls']) == 2 %#ok<EXIST>
+      SpreadsheetName = [OutFilename '.xls'];
    else
       disp('File not found for rAnalyzeAlignment');
    end
+
    T=cell(29,2);
-    clear a;
-    clear b;
-    [a b]=xlsread(SpreadsheetName); %#ok<ASGLU>
+   clear a;
+   clear b;
+
+   [a b]=xlsread(SpreadsheetName); %#ok<ASGLU>
+
    for i=1:length(b(:,2))
       b(i,2)=lower(strtrim(b(i,2)));
       b(i,5)=lower(strtrim(b(i,5)));
@@ -89,7 +94,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
          numbp1=numbp1+1;
       elseif len==4 && ~isequal(b{i,2},'----')
          numnbp1=numnbp1+1;
-      else 
+      else
          numnothing1=numnothing1+1;
       end
    end
@@ -103,12 +108,12 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
          numbp2=numbp2+1;
       elseif len==4 && ~isequal(b{i,5},'----')
          numnbp2=numnbp2+1;
-      else 
+      else
          numnothing2=numnothing2+1;
       end
    end
 
-%We're comparing columns two and five.  
+%We're comparing columns two and five.
 % Different Scenarios:
 % 1) same basepairs
 % 2) Different basepairs
@@ -119,7 +124,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
 % 7) Bp in A, only one is aligned
 % 8) Basepair in B, correct near bp in A
 % 9) Bp in B, different near bp in B
-% 10) Bp in B, aligned with 2 nt's making no bp in A 
+% 10) Bp in B, aligned with 2 nt's making no bp in A
 % 11) Bp in B, neither is aligned
 % 12) Bp in B, only one is aligned
 % 13) Single nucleotide in A aligned with nothing
@@ -147,7 +152,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
    NearInAnotWithNearinB = 0;
    NearInBnotWithNearinA = 0;
    for i=1:length(b(:,2))
-      if length(b{i,2})==3    
+      if length(b{i,2})==3
          if length(b{i,5})==3
             if isequal(b{i,2},b{i,5})
                samebp=samebp+1;                           % Case 1
@@ -157,7 +162,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
          elseif length(b{i,5})==4
             if isequal(b{i,5},'----')
                inAnotB=inAnotB+1;                        % Case 5
-            elseif isequal(strcat('n',b{i,2}),b{i,5}) 
+            elseif isequal(strcat('n',b{i,2}),b{i,5})
                AwithNear=AwithNear+1;                    % Case 3
             else
                AwithWrongNear=AwithWrongNear+1;          % Case 4
@@ -192,7 +197,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
       elseif isequal(b{i,3},'---') && isequal(b{i,6},'---') && ~isequal(b{i,1},'---') && ~isequal(b{i,4},'---')
          SinglesAligned = SinglesAligned + 1;            % Case 15
       elseif ~isempty(b{i,2}) && isequal(b{i,2}(1),'n')
-         if isempty(b{i,5})     
+         if isempty(b{i,5})
              NearInAnotWithNearinB = NearInAnotWithNearinB + 1;
          elseif isequal(b{i,5}(1),'n')
              twoNears = twoNears+1;
@@ -209,7 +214,7 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
   File(1)=File1;
   File(2)=File2;
   Tally = rTallyInteractions(File,AlignedIndices1,AlignedIndices2,0);
-  
+
 % --------------------------------------- Superimpose local neighborhoods
    if isempty(File(1).Distance),
       for f = 1:length(File),
@@ -227,14 +232,14 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
 %   Discrep = zHistogramDiscrepanciesInAlignment(File,AlignedIndices1,AlignedIndices2);
 
 
-% -------------------------------- Calculate IDI of aligned base combinations 
+% -------------------------------- Calculate IDI of aligned base combinations
 %                                  with basepairs in 3D structure
 %   IDI     = rAlignmentIsostericity(File,AlignedIndices1,AlignedIndices2,0);
 
   Identical = length(find(cat(1,File(1).NT(AlignedIndices1).Code)==cat(1,File(2).NT(AlignedIndices2).Code)));
-  
-   
-  
+
+
+
    T{1,1}=['Data for Alignment of ' File1.Filename ' and ' File2.Filename];
    T{3,1} = 'Number aligned';
    T{4,1} = 'Number of exact base matches in alignment';
@@ -295,10 +300,8 @@ if ~strcmp(ErrorMsg,'Out of Memory')  && ~strcmp(ErrorMsg,'None aligned')
 %    T{19,2} = NearInAnotWithNearinB;
 %    T{20,2} = NearInBnotWithNearinA;
 
-if ispc
    xlswrite(SpreadsheetName,T,'Sheet1','I1');
    clear T;
-end
 
 end
 
@@ -316,8 +319,8 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
    end
    T{5,2} = 'Number aligned';
    T{5,3} = 'Number of exact base matches in alignment';
-   T{5,4}='Basepairs From Same Geometeric Family Aligned';
-   T{5,5}='Basepairs From Different Geometric Family Aligned';
+   T{5,4} = 'Basepairs From Same Geometeric Family Aligned';
+   T{5,5} = 'Basepairs From Different Geometric Family Aligned';
    T{5,6} = 'Nested cWW aligned';
    T{5,7} = 'Nested non-cWW aligned';
    T{5,8} = 'Non-nested cWW aligned';
@@ -342,7 +345,7 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
    T{5,27}=['Single NT in ' File2.Filename ' aligned with nothing in ' File1.Filename];
    T{5,28}=['Single NT in ' File1.Filename ' aligned with single NT in ' File2.Filename];
    T{5,29}='Running Time';
-  
+
    T{6,1} = OutFilename;
    if ~strcmp(ErrorMsg,'Out of Memory') && ~strcmp(ErrorMsg,'None aligned')
       T{6,2} = length(AlignedIndices1);
@@ -369,16 +372,18 @@ if ~exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilena
       T{6,26} = SingleAwithNot;
       T{6,27} = SingleBwithNot;
       T{6,28} = SinglesAligned;
-      T{6,29} = Query.Time;
+      if isfield(Query,"Time")
+         T{6,29} = Query.Time;
+      else
+         T{6,29} = '';
+      end
    else
       T{6,2} = ErrorMsg;
       for i=3:28
             T{6,i}=0;
       end
    end
-      if ispc
-         xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1','A1');
-      end
+      xlswrite(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),T,'Sheet1','A1');
 else
    if exist(fullfile(pwd,'R3D Align Output','Summary Spreadsheets',[ShortOutFilename '.xls']),'file')
       clear a b;
@@ -434,8 +439,3 @@ else
       end
    end
 end
-
-
-
-
-
