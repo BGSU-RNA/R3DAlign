@@ -3,7 +3,7 @@
 % zAddNTData.
 % Chain1 is a cell array containing the chains (in character format) of the
 %   fragments to be aligned.  Examples: {'1'},{'A'},{'3','1'}
-% NTList1 is a cell the same size as Chain1 an
+% NTList1 is a cell the same size as Chain1 and
 %   contains the nucleotide numbers of the fragments.  If all nucleotides
 %   from a chain are to be aligned, {'all'} is an acceptable input.  Other
 %   examples: {'all','all'} (if 2 chains are specified); and, {'2:5,7,8'}
@@ -30,12 +30,13 @@
 % correspondences are saved; if 0, not saved.
 
 % Example 1:
-% Query.LoadFinal = 1;
+% Query.LoadFinal = 0;
 % Query.Type='local';
 % Query.PostD=3;
 % Query.AnchorLength=6;
-% Query.OutputFiles=0;
+% Query.OutputFiles=1;
 % Query.SaveEmptyAlignment = 1;
+% Query.SeqAlOutputFiles = 0;
 % R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},.5,8,10,'greedy',Query,Al1,Al2)
 
 % Example 2:
@@ -45,6 +46,7 @@
 % Query.AnchorLength=6;
 % Query.OutputFiles=1;
 % Query.SaveEmptyAlignment = 1;
+% Query.SeqAlOutputFiles = 0;
 % [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign('4W21',{'8','5'},{'all','all'},'2QBG',{'B'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'},Query);
 
 % Differences between v2 and v1
@@ -153,10 +155,10 @@ if ~isfield(Query,'currIter')
       File2String = MakeFileString(F2,Chain2,NTList2);
       ParamString = '';
       if length(discCut) == 1 && ~isequal(class(discCut),'cell')
-         ParamString = [ParamString '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth)]; %#ok<AGROW>
+         ParamString = [ParamString '_d' num2str(discCut) '_p' num2str(numNeigh) '_B' num2str(bandwidth) '_' cliqueMethod]; %#ok<AGROW>
       else
          for i=1:length(discCut)
-            ParamString = [ParamString '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+            ParamString = [ParamString '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i}) '_' cliqueMethod{i}]; %#ok<AGROW>
          end
       end
       if ~isempty(Query.SeedName)
@@ -401,7 +403,7 @@ NeighBFilename = [pwd filesep 'Neighborhoods' filesep NeighBFilename];
 
 % OutFilename gets longer with each additional iteration
 for i=2:Query.currIter
-   OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i})]; %#ok<AGROW>
+   OutFilename = [OutFilename '_d' num2str(discCut{i}) '_p' num2str(numNeigh{i}) '_B' num2str(bandwidth{i}) '_' cliqueMethod{i}]; %#ok<AGROW>
 end
 
 if ~isempty(Query.SeedName)
@@ -548,6 +550,9 @@ else
       if exist(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']))==2
          disp('Loading Sequence Alignment')
          load(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']));
+         if strcmpi(cliqueMethod{Query.currIter},'sequence')
+             return;
+         end
       else
          disp('Creating Sequence Alignment')
          [align1, align2, charAlign1, charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,7,0.25); %#ok<NASGU,ASGLU>
@@ -587,7 +592,7 @@ else
 
       clf
       if Query.SeqAlOutputFiles == 1
-         rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,ErrorMsg);
+            rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,I1,I2,fullfile(pwd, ShortOutFilename),ErrorMsg);
          try
             [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,I1,I2,ShortOutFilename,'R3D Align');
          catch %#ok<CTCH>
@@ -608,6 +613,10 @@ else
          rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
          rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
          movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
+
+         if strcmpi(cliqueMethod{Query.currIter},'sequence')  % just use sequence alignment as the alignment
+             return;
+         end
       end
       clear I1 I2;
    end
@@ -873,6 +882,9 @@ for i = 1:length(Segments(:,1))
       MC = rCliqueBB(EM);
    elseif strcmpi(cliqueMethod{Query.currIter},'greedy')
       MC = rGetMaximalClique(EM);
+   elseif strcmpi(cliqueMethod{Query.currIter},'sequence')
+      MC = []
+      fprintf("We need to define a maximal clique for sequence alignment\n");
    else
       method = input('Use full clique finding method? Y/N :','s');
       while ~strcmpi(method,'y') && ~strcmpi(method,'n')
