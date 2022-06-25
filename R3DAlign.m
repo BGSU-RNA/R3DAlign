@@ -212,9 +212,11 @@ if ~isfield(Query,'currIter')
            Filename1 = upper(File1);
            File1 = zAddNTData(Filename1);
         end
+      
       else %previously processed file was provided
          Filename1 = upper(File1.Filename);
       end
+      File1 = addUnitIDs(File1);
       Query.Filename1=Filename1;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 1.';
@@ -242,6 +244,7 @@ if ~isfield(Query,'currIter')
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
       end
+      File2 = addUnitIDs(File2);
       Query.Filename2=Filename2;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 2.';
@@ -984,7 +987,7 @@ catch ME
   ErrorMsg = ME.message;
   return;
 end
-end
+   end
 
 % ================================== additional functions =================================
 
@@ -1061,7 +1064,8 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	      FL = rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
 	      rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
 	      save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
-	   end
+     
+       end
 	else
       OutDirectory = fullfile(pwd, 'R3D Align Output', OutFilename);
 
@@ -1090,7 +1094,9 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
 	   FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
       OutFilename = fullfile(OutDirectory, 'AlignmentMatrix');
 	   rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
-
+      OutFilename = fullfile(OutDirectory, 'Neighborhood.html');   
+        writeNeighborhoodHTMLfile(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
+	  
 %	   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
 
 	   try
