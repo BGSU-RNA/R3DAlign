@@ -6,31 +6,44 @@
 %     nucleotides with the smallest diameter are superimposed onto the
 %     corresponding nt's in B.  The median of the 10 discrepancies is used.
 
-function [D,GoodDiscreps] = rFindAlignmentDiscrepancies(File1,Indices1,File2,Indices2,Method)
+function [D,GoodDiscreps, neighborhood1, neighborhood2] = rFindAlignmentDiscrepancies(File1,Indices1,File2,Indices2,Method)
 
+neighborhood1 = cell(length(Indices1), 5);
+neighborhood2 = cell(length(Indices1), 5); %to hold sets of five UnitIDs to be printed to .html
+
+   
 c1 = cat(1,File1.NT(Indices1).Center); % nucleotide centers
 D1 = full(zMutualDistance(c1,Inf));
 
 GoodDiscreps=[];
 
+%convert nearest 4 to neighborhoodsize = 5, and nearest k to
+%neigbhorhoodsize = k+1, then compute discreps for given neighborhoodsize
 if isequal(Method,'nearest4')
+    neighborhoodsize = 5;
    Discreps4=zeros(1,length(Indices1));
    for i=1:length(Indices1)
-      [a b]=sort(D1(i,:));
-      Discreps4(i) = xDiscrepancy(File1,Indices1(b(1:5)),File2,Indices2(b(1:5)));
-      if Discreps4(i)<.2
-          ItoAdd=[Indices1(b(1:5))' Indices2(b(1:5))'];
+      [a b]=sort(D1(i,:)); %sort distances from nucleotide i to all other nucleotides 
+      Discreps4(i) = xDiscrepancy(File1,Indices1(b(1:neighborhoodsize)),File2,Indices2(b(1:neighborhoodsize)));
+      for j = 1:neighborhoodsize 
+        neighborhood1{i, j} = File1.NT(Indices1(b(j))).ID;
+        neighborhood2{i, j} = File2.NT(Indices2(b(j))).ID;
+      end
+      if Discreps4(i)<0.2
+          ItoAdd=[Indices1(b(1:neighborhoodsize))' Indices2(b(1:neighborhoodsize))'];
           GoodDiscreps=[GoodDiscreps; ItoAdd]; %#ok<AGROW>
       end
    end
+
    D=Discreps4';
 elseif isequal(Method,'nearest10')
+    neighborhoodsize = 11;
    Discreps10=zeros(1,length(Indices1));
    for i=1:length(Indices1)
       [a b]=sort(D1(i,:));
-      Discreps10(i) = xDiscrepancy(File1,Indices1(b(1:11)),File2,Indices2(b(1:11)));
+      Discreps10(i) = xDiscrepancy(File1,Indices1(b(1:neighborhoodsize)),File2,Indices2(b(1:neighborhoodsize)));
       if Discreps10(i)<.2
-          ItoAdd=[Indices1(b(1:11))' Indices2(b(1:11))'];
+          ItoAdd=[Indices1(b(1:neighborhoodsize))' Indices2(b(1:neighborhoodsize))'];
           GoodDiscreps=[GoodDiscreps; ItoAdd]; %#ok<AGROW>
       end
    end

@@ -214,9 +214,11 @@ if ~isfield(Query,'currIter')
            File1 = addUnitIDs(File1);
            File1
         end
+      
       else %previously processed file was provided
          Filename1 = upper(File1.Filename);
       end
+      File1 = addUnitIDs(File1);
       Query.Filename1=Filename1;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 1.';
@@ -246,6 +248,7 @@ if ~isfield(Query,'currIter')
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
       end
+      File2 = addUnitIDs(File2);
       Query.Filename2=Filename2;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 2.';
@@ -988,7 +991,7 @@ catch ME
   ErrorMsg = ME.message;
   return;
 end
-end
+   end
 
 % ================================== additional functions =================================
 
@@ -1093,6 +1096,7 @@ function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndice
       OutFilename = fullfile(OutDirectory, 'AlignmentSpreadsheet');
       FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
       OutFilename = fullfile(OutDirectory, 'AlignmentMatrix');
+
       rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
 
       OutFilename = fullfile(OutDirectory, 'Neighborhood.html');

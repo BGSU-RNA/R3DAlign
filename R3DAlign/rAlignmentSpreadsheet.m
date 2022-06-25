@@ -35,16 +35,16 @@ if strcmp(ErrorMsg,'Out of Memory')
    return;
 end
 
-if ischar(File1),
+if ischar(File1)
   Filename = File1;
   File1 = zGetNTData(Filename,0);
 end
-if ischar(File2),
+if ischar(File2)
   Filename = File2;
   File2 = zGetNTData(Filename,0);
 end
 
-[i j k] = find(File1.Edge(NTList1,NTList1));     % find interactions in first file, k is interaction type
+[i, j, k] = find(File1.Edge(NTList1,NTList1));     % find interactions in first file, k is interaction type
 
 BPAI=zeros(length(i),2);                % will contain indices of nts with interacting as specified
                                         % will be at most length(i) pairs
@@ -64,7 +64,7 @@ end
 BPAI=BPAI(1:ct,:);         % Were only ct basepairs, not length(i)
 
 %Do the same for second file
-[i j k] = find(File2.Edge(NTList2,NTList2));
+[i, j, k] = find(File2.Edge(NTList2,NTList2));
 BPBI=zeros(length(i),2);
 ct=0;
 for m = 1:length(i)
@@ -197,7 +197,7 @@ for i=1:num2move
    tmpBP1=BPList1(1,:);
    tmpBP2=BPList2(1,:);
    Diff=tmpBP2(1)-BPList2(num2move+1:N,1);
-   [V loc]=min(abs(Diff));
+   [V, loc]=min(abs(Diff));
    if tmpBP2(1)-BPList2(loc+num2move) == 0
       loc=find(Diff==0,1,'last');
       BPList1(1:num2move+loc-1,:)=BPList1(2:num2move+loc,:);
@@ -218,20 +218,19 @@ for i=1:num2move
    end
    num2move=num2move-1;
 end
-
 if length(AlignedNTList1) > 4
-   Discreps = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+   [Discreps, GoodDiscreps, neighborhood1, neighborhood2] = rFindAlignmentDiscrepancies(File1,AlignedNTList1,File2,AlignedNTList2,'nearest4');
+   %for html neighborhood view
 elseif length(AlignedNTList1) == 4
    Discreps = xDiscrepancy(File1,AlignedNTList1,File2,AlignedNTList2);
 end
 
 FinalListing=cell(length(BPList1(:,1)),8);
-
 for i=1:length(FinalListing)
      if BPList1(i,1)==-99999
          a='---';
      else
-         a = [File1.NT(BPList1(i,1)).Chain ':' File1.NT(BPList1(i,1)).Base File1.NT(BPList1(i,1)).Number];
+         a = File1.NT(BPList1(i,1)).ID;
      end
      if BPList1(i,1)==-99999 || BPList1(i,2)==-99999
         b=' ';
@@ -245,12 +244,12 @@ for i=1:length(FinalListing)
      if BPList1(i,2)==-99999
          c='---';
      else
-         c = [File1.NT(BPList1(i,2)).Chain ':' File1.NT(BPList1(i,2)).Base File1.NT(BPList1(i,2)).Number];
+         c = File1.NT(BPList1(i,2)).ID; 
      end
      if BPList2(i,1)==-99999
          d='---';
      else
-         d = [File2.NT(BPList2(i,1)).Chain ':' File2.NT(BPList2(i,1)).Base File2.NT(BPList2(i,1)).Number];
+         d = File2.NT(BPList2(i,1)).ID;
      end
      if BPList2(i,1)==-99999 || BPList2(i,2)==-99999
         e=' ';
@@ -264,7 +263,7 @@ for i=1:length(FinalListing)
      if BPList2(i,2)==-99999
          f='---';
      else
-         f = [File2.NT(BPList2(i,2)).Chain ':' File2.NT(BPList2(i,2)).Base File2.NT(BPList2(i,2)).Number];
+         f = File2.NT(BPList2(i,2)).ID;
      end
      if BPList1(i,1)~=-99999 && BPList2(i,1)~=-99999 && length(AlignedNTList1) > 4
         g=Discreps(AlignedNTList1==BPList1(i,1));
@@ -279,6 +278,7 @@ for i=1:length(FinalListing)
      FinalListing{i,6}=f;
      FinalListing{i,7}=g;
 end
+
 
 % date = regexprep(datestr(now),':', '-');
 % ExcelName=['R3D Align ' File1.Filename ' ' File2.Filename ' ' date(1:17)];
@@ -392,3 +392,5 @@ else
    e.delete
    delete([TempExcelName '.xls']);
 end
+
+%printing html script for viewing
