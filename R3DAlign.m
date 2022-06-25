@@ -96,8 +96,8 @@ function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File
    addpath([pwd filesep 'PrecomputedData']);
 
    try
-   	if ~exist('Query','var')
-   	   Query.Type = 'local';
+      if ~exist('Query','var')
+         Query.Type = 'local';
    end
 
 % Set up many variables for the alignment
@@ -203,14 +203,16 @@ if ~isfield(Query,'currIter')
    % load 3D coordinate data
    try
       if ischar(File1),
+        fprintf('Loading 3D structure file %s ...\n',File1);
         if isequal(File1,'uploaded')
            Filename1 = Query.UploadName1;
            File1 = zAddNTData(Filename1);
            File1.Filename=Query.UploadName1;
         else
-           fprintf('Loading 3D structure file %s ...\n',File1);
            Filename1 = upper(File1);
            File1 = zAddNTData(Filename1);
+           File1 = addUnitIDs(File1);
+           File1
         end
       else %previously processed file was provided
          Filename1 = upper(File1.Filename);
@@ -238,6 +240,8 @@ if ~isfield(Query,'currIter')
          else
             Filename2 = upper(File2);
             File2 = zAddNTData(Filename2);
+            File2 = addUnitIDs(File2);
+            File2
          end
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
@@ -884,7 +888,7 @@ for i = 1:length(Segments(:,1))
       MC = rGetMaximalClique(EM);
    elseif strcmpi(cliqueMethod{Query.currIter},'sequence')
       MC = []
-      fprintf("We need to define a maximal clique for sequence alignment\n");
+      fprintf('We need to define a maximal clique for sequence alignment\n');
    else
       method = input('Use full clique finding method? Y/N :','s');
       while ~strcmpi(method,'y') && ~strcmpi(method,'n')
@@ -936,12 +940,12 @@ end
    AlignedIndices2 = AlignedIndices2(ind);
 
 
-	if length(Indnums1)>4
-	      D=rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
-	      disp(['Number removed via post-processing: ' num2str(sum(D>Query.PostD)) '/' num2str(length(D))]);
-	      AlignedIndices1(D>Query.PostD)=[];
-	      AlignedIndices2(D>Query.PostD)=[];
-	end
+   if length(Indnums1)>4
+         D=rFindAlignmentDiscrepancies(File1,AlignedIndices1,File2,AlignedIndices2,'nearest4');
+         disp(['Number removed via post-processing: ' num2str(sum(D>Query.PostD)) '/' num2str(length(D))]);
+         AlignedIndices1(D>Query.PostD)=[];
+         AlignedIndices2(D>Query.PostD)=[];
+   end
 %AlignedNTs contains the nucleotide number, base and chain of each aligned nucleotide
    clear AlignedNTs1;
    clear AlignedNTs2;
@@ -1041,73 +1045,76 @@ end
 
 % Produce several different kinds of output
 function WriteOutput(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename,ShortOutFilename,ErrorMsg,Query)
-	if isequal(Query.Type,'web')
-	   if strcmp(ErrorMsg,'')
-	      clf
-	      [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
-	      View = [1 1 1 1 0 0 0];
-	      m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
-	      m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
-	      if m1(4) ~= 0 && m2(3) ~= 0
-	         axis([0 20 m2(3) m1(4)])
-	      end
-	      saveas(gcf,[Query.Name '_int'],'pdf')
-	      saveas(gcf,[Query.Name '_int'],'png')
+   if isequal(Query.Type,'web')
+      if strcmp(ErrorMsg,'')
+         clf
+         [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,'R3D Align');
+         View = [1 1 1 1 0 0 0];
+         m1 = zBarDiagramInteractions(File1,Indices1,AAA,View,'above');
+         m2 = zBarDiagramInteractions(File2,Indices2,BBB,View,'below');
+         if m1(4) ~= 0 && m2(3) ~= 0
+            axis([0 20 m2(3) m1(4)])
+         end
+         saveas(gcf,[Query.Name '_int'],'pdf')
+         saveas(gcf,[Query.Name '_int'],'png')
 
-	      rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
-	      rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
-	      VP.Write=1;
-	      rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-	      FL = rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
-	      rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
-	      save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
-	   end
-	else
+         rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
+         rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,Query.Name);
+         VP.Write=1;
+         rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
+         FL = rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,ErrorMsg);
+         rWriteSummaryStatistics(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,Query.Name,FL);
+         save([pwd filesep Query.Name '.mat'], 'AlignedIndices1', 'AlignedIndices2', 'ErrorMsg', 'Query');
+      end
+   else
       OutDirectory = fullfile(pwd, 'R3D Align Output', OutFilename);
 
       if exist(OutDirectory) ~= 7 %if folder does not exist
          mkdir(OutDirectory)
       end
 
-	   clf
+      clf
 
 %      fprintf('WriteOutput: OutFilename %s\n',OutFilename);
 
-	   try
+      try
           OutFilename = fullfile(OutDirectory, 'BarDiagram');
-	       [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
-	   catch ME
-	       for k=1:length(ME.stack)
-	          ME.stack(k)
-	       end
-	       OutFilename
-	       fprintf('Bar diagram could not be generated\n');
-	   end
+          [AAA,BBB] = rBarDiagram(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,'R3D Align');
+      catch ME
+          for k=1:length(ME.stack)
+             ME.stack(k)
+          end
+          OutFilename
+          fprintf('Bar diagram could not be generated\n');
+      end
 
       OutFilename = fullfile(OutDirectory, 'Alignment');
-	   rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
+      rWriteAlignmentFasta(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
       OutFilename = fullfile(OutDirectory, 'AlignmentSpreadsheet');
-	   FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
+      FL=rAlignmentSpreadsheet(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
       OutFilename = fullfile(OutDirectory, 'AlignmentMatrix');
-	   rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
+      rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,NTList,OutFilename);
 
-%	   movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
+      OutFilename = fullfile(OutDirectory, 'Neighborhood.html');
+      writeNeighborhoodHTMLfile(File1,Indices1,File2,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ErrorMsg);
 
-	   try
+%     movefile([pwd filesep OutFilename '*'], fullfile(pwd, 'R3D Align Output', OutFilename));
+
+      try
          OutFilename = fullfile(OutDirectory, 'AlignmentSpreadsheet');
          rAnalyzeAlignmentNew(File1,File2,Indices1,Indices2,AlignedIndices1,AlignedIndices2,OutFilename,ShortOutFilename,ErrorMsg,Query);
-	   catch ME
-	      for k=1:length(ME.stack)
-	         ME.stack(k)
-	      end
-	      fprintf('Alignment could not be analyzed\n');
-	   end
+      catch ME
+         for k=1:length(ME.stack)
+            ME.stack(k)
+         end
+         fprintf('Alignment could not be analyzed\n');
+      end
 
-	   if exist('Query', 'var') && isfield(Query, 'Name')
-	       VP.Write=1;
-	       rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
-	   end
-	end
+      if exist('Query', 'var') && isfield(Query, 'Name')
+          VP.Write=1;
+          rSuperimposeNucleotides(File1,[AlignedIndices1 setdiff(Indices1,AlignedIndices1)],File2,[AlignedIndices2 setdiff(Indices2,AlignedIndices2)],VP,length(AlignedIndices1),Query.Name);
+      end
+   end
 end
 
 % This function runs R3DAlign repeatedly, for iterative alignment
