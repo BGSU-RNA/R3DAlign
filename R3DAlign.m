@@ -211,14 +211,13 @@ if ~isfield(Query,'currIter')
         else
            Filename1 = upper(File1);
            File1 = zAddNTData(Filename1);
-           File1 = addUnitIDs(File1);
            File1
         end
       
       else %previously processed file was provided
          Filename1 = upper(File1.Filename);
       end
-      File1 = addUnitIDs(File1);
+      %File1 = addUnitIDs(File1);
       Query.Filename1=Filename1;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 1.';
@@ -242,13 +241,12 @@ if ~isfield(Query,'currIter')
          else
             Filename2 = upper(File2);
             File2 = zAddNTData(Filename2);
-            File2 = addUnitIDs(File2);
             File2
          end
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
       end
-      File2 = addUnitIDs(File2);
+      %File2 = addUnitIDs(File2);
       Query.Filename2=Filename2;
    catch %#ok<CTCH>
       Query.ErrorMsg='Unable to load PDB file for Molecule 2.';
