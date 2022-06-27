@@ -1,21 +1,22 @@
 % rAugmentAlignment(align1,align2) fills in a near match for non-aligned nucleotides
+% This is in the seed alignment.
 % For each nt in A aligned with a gap, the nearest aligned nt in B is found
 % to use as the center of the band for that nt
 
-%New in V2
-%1) Returns D so that R3DAlign can use D to set the anchors
-%2) More sophisticated approach to Augmenting alignment (instead of just
-%finding nearest aligned, it "fills in" the correspondences on a one to one
-%basis (as much as possible)).  For example if the seed alignment is:
+% New in V2
+% 1) Returns D so that R3DAlign can use D to set the anchors
+% 2) More sophisticated approach to Augmenting alignment (instead of just
+% finding nearest aligned, it "fills in" the correspondences on a one to one
+% basis (as much as possible)).  For example if the seed alignment is:
 % 5---6789
 % 5678---9
 % the resulting augmented alignment will be
 % 56789
 % 56789
-%instead of 
+% instead of
 % 56789
 % 59999
-%like is was previously.
+% like is was previously.
 
 function [align1, align2, D] = rAugmentAlignment(Indices1,Indices2,align1,align2,D)
 
