@@ -1,3 +1,13 @@
+% R3DAlign.m produces nucleotide to nucleotide alignments of RNA 3D structures.
+% As of 2022-06-26, it ignores modified nucleotides.
+
+% Directory setup roughly like this:
+% cd 'FR3D'   % a folder to store PDBFiles, PrecomputedData, and R3DAlign output
+% addpath('GitHub\FR3D\FR3DSource')     % R3DAlign is built on Matlab FR3D
+% addpath('GitHub\R3DAlign')            % Where R3DAlign.m is located
+% addpath('GitHub\R3DAlign\R3DAlign')   % Where other R3DAlign programs are located
+
+% Basic usage examples below.
 % File1 and File2 and can pdb id's such as '1s72' and '2j01' or they can be
 % the variables containing the molecule information returned from
 % zAddNTData.
@@ -11,12 +21,12 @@
 % numNeigh is the number of neighborhoods for each nucleotide
 % cliqueMethod is either 'greedy' or 'full'; use a cell array for iteration
 
-% Examples: R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},0.5,8,10,'greedy',Query,Al1,Al2)
-%           R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'},Query);
+% Basic examples:
+% R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},0.5,8,10,'greedy')
+% R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'});
 % [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign('1FJG',{'A'},{'all'},'4KVB',{'A'},{'all'},0.5,8,10,'greedy')
 
-% seed1 and seed2 are optional seed alignments. They can be ...
-
+% Advanced examples where you specify additional parameters in the variable Query
 % Query.Type is either 'web' or 'local'.
 % Query.Name is the 13 character id set by WebR3DAlign.
 % If Query.LoadFinal = 1, previous results are used; if 0, re-processed.
@@ -29,9 +39,9 @@
 % If Query.SaveEmptyAlignment = 1, alignments that do not find any
 % correspondences are saved; if 0, not saved.
 
-% Example 1:
-% Query.LoadFinal = 0;
+% Advanced example 1:
 % Query.Type='local';
+% Query.LoadFinal = 0;             % don't load a previous alignment, re-do it
 % Query.PostD=3;
 % Query.AnchorLength=6;
 % Query.OutputFiles=1;
@@ -39,7 +49,7 @@
 % Query.SeqAlOutputFiles = 0;
 % R3DAlign('1j5e',{'A'},{'all'},'2avy',{'A'},{'all'},.5,8,10,'greedy',Query,Al1,Al2)
 
-% Example 2:
+% Advanced example 2:
 % Query.LoadFinal = 1;
 % Query.Type='local';
 % Query.PostD=3;
@@ -49,7 +59,7 @@
 % Query.SeqAlOutputFiles = 0;
 % [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign('4W21',{'8','5'},{'all','all'},'2QBG',{'B'},{'all'},{.4,.5,.5},{1,3,9},{200,70,20},{'greedy','greedy','greedy'},Query);
 
-% Differences between v2 and v1
+% Differences between version 2 and version 1
 % 1) Anchor code
 % 2) Faster conversion of seed from cell
 % 3) uses new rAugmentAlignment.m
@@ -57,9 +67,11 @@
 
 function [AlignedNTs1,AlignedNTs2,ErrorMsg] = R3DAlign(File1,Chain1,NTList1,File2,Chain2,NTList2,discCut,numNeigh,bandwidth,cliqueMethod,Query,seed1,seed2)
 
-   if nargin < 10
-      fprintf('R3DAlign needs at least 10 arguments\n');
-      return
+   if nargin < 7
+      discCut = {0.5};
+      numNeigh = {3};
+      bandwidth = {50};
+      cliqueMethod = {'greedy'};
    end
 
    % make sure FR3D code base is installed
