@@ -181,6 +181,7 @@ if ~isfield(Query,'currIter')
       OutFilename = strrep(OutFilename, ':', '-');
       OutFilename = strrep(OutFilename, '.', '');
       Query.OutFilename = OutFilename;
+      Query.SequenceAlignmentFilename = [File2String '--' File1String];
 
       fprintf('First OutFilename %s\n',OutFilename);
 
@@ -223,7 +224,6 @@ if ~isfield(Query,'currIter')
         else
            Filename1 = upper(File1);
            File1 = zAddNTData(Filename1);
-           File1
         end
       
       else %previously processed file was provided
@@ -253,7 +253,6 @@ if ~isfield(Query,'currIter')
          else
             Filename2 = upper(File2);
             File2 = zAddNTData(Filename2);
-            File2
          end
       else %previously processed file was provided
          Filename2 = upper(File2.Filename);
@@ -396,6 +395,7 @@ NTList{2}=NTList2;
 
 OutFilename = Query.OutFilename;
 ShortOutFilename=OutFilename;
+SequenceAlignmentPathFilename = fullfile(pwd, 'Sequence Alignments', [Query.SequenceAlignmentFilename '.mat']);
 
 Indices1 = Query.Indices1;
 Indices2 = Query.Indices2;
@@ -564,16 +564,18 @@ else
          end
       end
    elseif ~exist('seed1') || isempty(seed1)
-      if exist(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']))==2
+      if exist(SequenceAlignmentPathFilename)==2
          disp('Loading Sequence Alignment')
-         load(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']));
+         load(SequenceAlignmentPathFilename);
          if strcmpi(cliqueMethod{Query.currIter},'sequence')
              return;
          end
       else
          disp('Creating Sequence Alignment')
          [align1, align2, charAlign1, charAlign2] = rGapNW(File1,Indices1,File2,Indices2,.999,7,0.25); %#ok<NASGU,ASGLU>
-         save(fullfile(pwd, 'Sequence Alignments', [ShortOutFilename '.mat']), 'align1', 'align2', 'charAlign1', 'charAlign2')
+         fprintf('%s\n',charAlign1)
+         fprintf('%s\n',charAlign2)
+         save(SequenceAlignmentPathFilename, 'align1', 'align2', 'charAlign1', 'charAlign2')
       end
    else
 %       for i=1:length(seed1)
@@ -601,9 +603,9 @@ else
 
    end
 
-%Files for the sequence alignment are created and moved to the
-%'Sequence Alignments' folder.
-   if ~isequal(Query.Type,'web') && exist(fullfile(pwd, 'Sequence Alignments',ShortOutFilename)) ~= 7
+% Files for the sequence alignment are created and moved to the
+% 'Sequence Alignments' folder.
+   if ~isequal(Query.Type,'web') && exist(SequenceAlignmentPathFilename) ~= 7
       I1=Indices1(align1);
       I2=Indices2(align2);
 
@@ -629,7 +631,7 @@ else
          end
          rWriteAlignmentFasta(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
          rWriteAlignmentMatrix(File1,Indices1,File2,Indices2,I1,I2,NTList,ShortOutFilename);
-         movefile([pwd filesep ShortOutFilename '*'], fullfile(pwd, 'Sequence Alignments', ShortOutFilename));
+         movefile([pwd filesep ShortOutFilename '*'], SequenceAlignmentPathFilename);
 
          if strcmpi(cliqueMethod{Query.currIter},'sequence')  % just use sequence alignment as the alignment
              return;
